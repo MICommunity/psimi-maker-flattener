@@ -27,11 +27,10 @@
 			</includes>
 			<outputDirectory></outputDirectory>
 		</fileSet>
+		<fileSet>
+			<directory>target/xmlMakerFlattener/lib/</directory>
+			<outputDirectory>lib</outputDirectory>
+		</fileSet>
 
 	</fileSets>
-	<dependencySets>
-		<dependencySet>
-			<outputDirectory>lib</outputDirectory>
-		</dependencySet>
-	</dependencySets>
 </assembly>
