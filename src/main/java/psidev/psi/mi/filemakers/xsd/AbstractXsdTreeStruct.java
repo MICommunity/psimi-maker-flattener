@@ -438,8 +438,9 @@ public abstract class AbstractXsdTreeStruct extends Observable {
      */
     public XsdNode getNodeByPath(String indexes) {
         boolean treeChanged = false;
+
+        String nextIndexes = indexes;
         try {
-            String nextIndexes = indexes;
             XsdNode currentNode = null; // rootNode;
             int index = 0;
             while (nextIndexes.indexOf(".") >= 0) {
@@ -480,7 +481,7 @@ public abstract class AbstractXsdTreeStruct extends Observable {
                 /*
                  * to keep compatibility: if mapping done without
                  * auto-duplication of nodes and applied without this option, an
-                 * exception will be rised if the node has not been manually
+                 * exception will be raised if the node has not been manually
                  * duplicated. In this case try to duplicate "upper" node.
                  */
                 /* get upper node's index */
@@ -499,7 +500,7 @@ public abstract class AbstractXsdTreeStruct extends Observable {
              * TODO: add check?
              */
         } catch (ArrayIndexOutOfBoundsException aoobe) {
-            log.error("Path not found: " + indexes);
+            log.error("Path not found: " + indexes + " / " + nextIndexes);
             return null;
         }
     }
@@ -718,8 +719,19 @@ public abstract class AbstractXsdTreeStruct extends Observable {
                     newNode = new XsdNode((Annotated) choices.get(possibilities
                             .indexOf(choice)));
                     newNode.isRequired = currentNode.isRequired;
-                    newNode.min = currentNode.min;
-                    newNode.max = currentNode.max;
+                    
+                    /**
+                     * If the max occurs is specified, transfer it to the child.
+                     */
+                    /** 
+                     * TODO: check if we should verify that max/min is indedd specified for the group.
+                     */
+                    newNode.min = g.getMaxOccurs(); //node.min;
+                    newNode.max = g.getMaxOccurs(); //node.max;
+               
+//                    
+//                    newNode.min = currentNode.min;
+//                    newNode.max = currentNode.max;
                     newNode.originalParent = currentNode;
 
                     currentNode.transparent = true;
@@ -862,8 +874,15 @@ public abstract class AbstractXsdTreeStruct extends Observable {
                     newNode = new XsdNode((Annotated) choices.get(possibilities
                             .indexOf(choice)));
                     newNode.isRequired = node.isRequired;
-                    newNode.min = node.min;
-                    newNode.max = node.max;
+                    
+                    /**
+                     * If the max occurs is specified, transfer it to the child.
+                     */
+                    /** 
+                     * TODO: check if we should verify that max/min is indedd specified for the group.
+                     */
+                    newNode.min = g.getMaxOccurs(); //node.min;
+                    newNode.max = g.getMaxOccurs(); //node.max;
                     newNode.originalParent = node;
                     node.transparent = true;
                     node.add(newNode);

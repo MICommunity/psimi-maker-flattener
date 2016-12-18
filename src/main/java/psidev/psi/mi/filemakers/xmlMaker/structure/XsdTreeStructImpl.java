@@ -1447,8 +1447,12 @@ public class XsdTreeStructImpl extends
 //			String path = (String) it.next();
 //			String field = (String) mapping.associatedValues.get(path);
 			XsdNode node = getNodeByPath(path);
-			node.useOnlyThis();
-			this.associatedValues.put(node, mapping.getAssociatedValues().get(path));
+			if (node == null) {
+				System.err.println("No node: " + path);
+			} else {
+				node.useOnlyThis();
+				this.associatedValues.put(node, mapping.getAssociatedValues().get(path));
+			}
 		}
 
 //		it = mapping.validationRegexps.keySet().iterator();
