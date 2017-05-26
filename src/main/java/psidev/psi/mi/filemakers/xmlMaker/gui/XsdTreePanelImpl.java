@@ -997,7 +997,7 @@ public class XsdTreePanelImpl extends
 				
 				int max = node.max;
 				String text = getText();
-				if (null != ((ElementDecl) node.getUserObject()).getType() 
+				if (null !=  ((ElementDecl) node.getUserObject()).getType() && null != ((ElementDecl) node.getUserObject()).getType() 
 						.getBaseType()) {
 					text += " ["
 							+ ((ElementDecl) node.getUserObject()).getType()
