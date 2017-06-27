@@ -726,7 +726,7 @@ public abstract class AbstractXsdTreeStruct extends Observable {
                     /** 
                      * TODO: check if we should verify that max/min is indedd specified for the group.
                      */
-                    newNode.min = g.getMaxOccurs(); //node.min;
+                    newNode.min = g.getMinOccurs(); //node.min;
                     newNode.max = g.getMaxOccurs(); //node.max;
                
 //                    
@@ -881,7 +881,8 @@ public abstract class AbstractXsdTreeStruct extends Observable {
                     /** 
                      * TODO: check if we should verify that max/min is indedd specified for the group.
                      */
-                    newNode.min = g.getMaxOccurs(); //node.min;
+                    
+                    newNode.min = g.getMinOccurs(); //node.min;
                     newNode.max = g.getMaxOccurs(); //node.max;
                     newNode.originalParent = node;
                     node.transparent = true;
