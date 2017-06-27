@@ -41,7 +41,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.TitledBorder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -55,6 +54,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import psidev.psi.mi.filemakers.xmlMaker.gui.DictionaryPanel;
 import psidev.psi.mi.filemakers.xmlMaker.gui.FlatFileTabbedPanel;
@@ -88,16 +89,18 @@ import psidev.psi.mi.filemakers.xsd.XsdNode;
  */
 public class XmlMakerGui extends JFrame {
 
+
+	private static final Log log = LogFactory
+     .getLog(XmlMakerGui.class);
+	
 	static String mappingFileName = null;
 
 	private static void displayUsage(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
 		if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
-			formatter.printHelp("bin/xmlmaker-gui.bat ",
-				options);
+			formatter.printHelp("bin/xmlmaker-gui.bat ", options);
 		} else {
-			formatter.printHelp("sh bin/xmlmaker-gui ",
-					options);
+			formatter.printHelp("sh bin/xmlmaker-gui ", options);
 		}
 	}
 
@@ -121,23 +124,19 @@ public class XmlMakerGui extends JFrame {
 
 			Utils.lastVisitedDirectory = mappingFile.getPath();
 			Utils.lastVisitedMappingDirectory = mappingFile.getPath();
-			
+
 			JAXBContext jaxbContext = JAXBContext.newInstance(Mapping.class);
 			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 			Mapping mapping = (Mapping) jaxbUnmarshaller.unmarshal(fin);
 			load(mapping);
 			fin.close();
-			
+
 		} catch (FileNotFoundException fe) {
-			JOptionPane.showMessageDialog(new JFrame(),
-					"Unable to load mapping" + mappingFile.getName(),
-					"[PSI makers: PSI maker] load mapping",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(new JFrame(), "Unable to load mapping" + mappingFile.getName(),
+					"[PSI makers: PSI maker] load mapping", JOptionPane.ERROR_MESSAGE);
 		} catch (IOException ioe) {
-			JOptionPane.showMessageDialog(new JFrame(),
-					"IO error, unable to load mapping",
-					"[PSI makers: PSI maker] load mapping",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(new JFrame(), "IO error, unable to load mapping",
+					"[PSI makers: PSI maker] load mapping", JOptionPane.ERROR_MESSAGE);
 		} catch (JAXBException jbe) {
 			System.out.println("Not a JAXB file, try with old format");
 			loadOldFormat(mappingFile);
@@ -150,7 +149,7 @@ public class XmlMakerGui extends JFrame {
 
 			Utils.lastVisitedDirectory = mappingFile.getPath();
 			Utils.lastVisitedMappingDirectory = mappingFile.getPath();
-			
+
 			// Create XML encoder.
 			XMLDecoder xdec = new XMLDecoder(fin);
 
@@ -162,18 +161,14 @@ public class XmlMakerGui extends JFrame {
 			xdec.close();
 			fin.close();
 		} catch (FileNotFoundException fe) {
-			JOptionPane.showMessageDialog(new JFrame(),
-					"Unable to load mapping" + mappingFile.getName(),
-					"[PSI makers: PSI maker] load mapping",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(new JFrame(), "Unable to load mapping" + mappingFile.getName(),
+					"[PSI makers: PSI maker] load mapping", JOptionPane.ERROR_MESSAGE);
 		} catch (IOException ioe) {
-			JOptionPane.showMessageDialog(new JFrame(),
-					"IO error, unable to load mapping",
-					"[PSI makers: PSI maker] load mapping",
-					JOptionPane.ERROR_MESSAGE);
-		} 
+			JOptionPane.showMessageDialog(new JFrame(), "IO error, unable to load mapping",
+					"[PSI makers: PSI maker] load mapping", JOptionPane.ERROR_MESSAGE);
+		}
 	}
-	
+
 	private void load(Mapping mapping) {
 		try {
 
@@ -181,8 +176,7 @@ public class XmlMakerGui extends JFrame {
 			flatFileTabbedPanel.flatFileContainer.flatFiles = new ArrayList<FlatFile>();
 
 			for (int i = 0; i < mapping.getFlatFiles().size(); i++) {
-				FlatFileMapping ffm = (FlatFileMapping) mapping.getFlatFiles()
-						.get(i);
+				FlatFileMapping ffm = (FlatFileMapping) mapping.getFlatFiles().get(i);
 				FlatFile f = new FlatFile();
 				if (ffm != null) {
 					f.lineSeparator = ffm.getLineSeparator();
@@ -194,10 +188,8 @@ public class XmlMakerGui extends JFrame {
 						if (url != null)
 							f.load(url);
 					} catch (FileNotFoundException fe) {
-						JOptionPane.showMessageDialog(new JFrame(),
-								"Unable to load file" + ffm.getFileURL(),
-								"[PSI makers: PSI maker] load flat file",
-								JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(new JFrame(), "Unable to load file" + ffm.getFileURL(),
+								"[PSI makers: PSI maker] load flat file", JOptionPane.ERROR_MESSAGE);
 					}
 				}
 				treePanel.flatFileTabbedPanel.flatFileContainer.addFlatFile(f);
@@ -208,8 +200,7 @@ public class XmlMakerGui extends JFrame {
 			dictionnaryLists.dictionaries.dictionaries = new ArrayList<Dictionary>();
 
 			for (int i = 0; i < mapping.getDictionaries().size(); i++) {
-				DictionaryMapping dm = (DictionaryMapping) mapping
-						.getDictionaries().get(i);
+				DictionaryMapping dm = (DictionaryMapping) mapping.getDictionaries().get(i);
 				Dictionary d = new Dictionary();
 
 				try {
@@ -217,15 +208,12 @@ public class XmlMakerGui extends JFrame {
 					if (dm.getFileURL() != null)
 						url = new File(dm.getFileURL()).toURI().toURL();
 					if (url != null)
-						d = new Dictionary(url, dm.getSeparator(),
-								dm.isCaseSensitive());
+						d = new Dictionary(url, dm.getSeparator(), dm.isCaseSensitive());
 					else
 						d = new Dictionary();
 				} catch (FileNotFoundException fe) {
-					JOptionPane.showMessageDialog(new JFrame(),
-							"Unable to load file" + dm.getFileURL(),
-							"[PSI makers: PSI maker] load dictionnary",
-							JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(new JFrame(), "Unable to load file" + dm.getFileURL(),
+							"[PSI makers: PSI maker] load dictionnary", JOptionPane.ERROR_MESSAGE);
 					d = new Dictionary();
 				}
 				treePanel.dictionaryPanel.dictionaries.addDictionary(d);
@@ -238,42 +226,36 @@ public class XmlMakerGui extends JFrame {
 			String schemaUrl = treeMapping.getSchemaURL();
 			try {
 				treePanel.loadSchema(schemaUrl);
-				
-				((XsdTreeStructImpl) treePanel.xsdTree)
-						.loadMapping(treeMapping);
+
+				((XsdTreeStructImpl) treePanel.xsdTree).loadMapping(treeMapping);
 
 				treePanel.xsdTree.check();
 
 				treePanel.reload();
-								
+
 				/* set titles for flat files */
 				for (int i = 0; i < mapping.getFlatFiles().size(); i++) {
 					try {
 						flatFileTabbedPanel.tabbedPane.setTitleAt(i,
-								((XsdNode) xsdTree.getAssociatedFlatFiles()
-										.get(i)).toString());
+								((XsdNode) xsdTree.getAssociatedFlatFiles().get(i)).toString());
 					} catch (IndexOutOfBoundsException e) {
 						/** TODO: manage exception */
 					}
 				}
 
 			} catch (FileNotFoundException fe) {
-				JOptionPane.showMessageDialog(new JFrame(), "File not found: "
-						+ schemaUrl, "[PSI makers]",
+				JOptionPane.showMessageDialog(new JFrame(), "File not found: " + schemaUrl, "[PSI makers]",
 						JOptionPane.ERROR_MESSAGE);
 			} catch (IOException ioe) {
-				JOptionPane.showMessageDialog(new JFrame(),
-						"Unable to load file" + ioe.toString(), "[PSI makers]",
+				JOptionPane.showMessageDialog(new JFrame(), "Unable to load file" + ioe.toString(), "[PSI makers]",
 						JOptionPane.ERROR_MESSAGE);
 			}
 		} catch (IOException ioe) {
-			JOptionPane.showMessageDialog(new JFrame(),
-					"IO error, unable to load mapping",
-					"[PSI makers: PSI maker] load mapping",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(new JFrame(), "IO error, unable to load mapping",
+					"[PSI makers: PSI maker] load mapping", JOptionPane.ERROR_MESSAGE);
 		} catch (NoSuchElementException nsee) {
-			JOptionPane.showMessageDialog(new JFrame(), "Unable to load file",
-					"[PSI makers]", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(new JFrame(), "Unable to load file", "[PSI makers]",
+					JOptionPane.ERROR_MESSAGE);
 		}
 
 	}
@@ -296,32 +278,28 @@ public class XmlMakerGui extends JFrame {
 			// Create XML encoder.
 			JAXBContext jaxbContext = JAXBContext.newInstance(Mapping.class);
 			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-			
+
 			Mapping mapping = new Mapping();
-			mapping.setTree(((XsdTreeStructImpl) treePanel.xsdTree)
-					.getMapping());
+			mapping.setTree(((XsdTreeStructImpl) treePanel.xsdTree).getMapping());
 
 			/* dictionaries */
-			for (int i = 0; i < treePanel.dictionaryPanel.dictionaries
-					.getDictionaries().size(); i++) {
-				mapping.getDictionaries().add(((Dictionary) xsdTree.dictionaries
-						.getDictionaries().get(i)).getMapping());
+			for (int i = 0; i < treePanel.dictionaryPanel.dictionaries.getDictionaries().size(); i++) {
+				mapping.getDictionaries()
+						.add(((Dictionary) xsdTree.dictionaries.getDictionaries().get(i)).getMapping());
 			}
 
 			/* flat files */
-			for (int i = 0; i < xsdTree.flatFiles.flatFiles.size(); i++) {		
-				mapping.getFlatFiles().add((xsdTree.flatFiles.getFlatFile(i))
-						.getMapping());
+			for (int i = 0; i < xsdTree.flatFiles.flatFiles.size(); i++) {
+				mapping.getFlatFiles().add((xsdTree.flatFiles.getFlatFile(i)).getMapping());
 			}
-			
+
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-			 
+
 			jaxbMarshaller.marshal(mapping, fos);
-			
+
 			fos.close();
 		} catch (FileNotFoundException fe) {
-			JOptionPane.showMessageDialog(new JFrame(), "Unable to write file",
-					"[PSI makers: PSI maker] save mapping",
+			JOptionPane.showMessageDialog(new JFrame(), "Unable to write file", "[PSI makers: PSI maker] save mapping",
 					JOptionPane.ERROR_MESSAGE);
 		} catch (Exception ex) {
 			System.out.println("pb: " + ex);
@@ -456,13 +434,11 @@ public class XmlMakerGui extends JFrame {
 					editorPane.setPage("file:doc/documentation.html");
 
 					JScrollPane areaScrollPane = new JScrollPane(editorPane);
-					areaScrollPane
-							.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+					areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 					areaScrollPane.setPreferredSize(new Dimension(600, 650));
 					JOptionPane.showMessageDialog(new JFrame(), areaScrollPane);
 				} catch (IOException ioe) {
-					JOptionPane.showMessageDialog(new JFrame(),
-							"Documentation not found.", "Documentation",
+					JOptionPane.showMessageDialog(new JFrame(), "Documentation not found.", "Documentation",
 							JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -476,13 +452,11 @@ public class XmlMakerGui extends JFrame {
 					editorPane.setPage("file:doc/about.html");
 					editorPane.setContentType("text/html");
 					JScrollPane areaScrollPane = new JScrollPane(editorPane);
-					areaScrollPane
-							.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+					areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 					areaScrollPane.setPreferredSize(new Dimension(600, 650));
 					JOptionPane.showMessageDialog(new JFrame(), areaScrollPane);
 				} catch (IOException ioe) {
-					JOptionPane.showMessageDialog(new JFrame(),
-							"About not found.", "About...",
+					JOptionPane.showMessageDialog(new JFrame(), "About not found.", "About...",
 							JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -492,23 +466,17 @@ public class XmlMakerGui extends JFrame {
 	public static void main(String[] args) {
 
 		Options options = new Options();
-		
-		// Load look'n feel
+
 		try {
-			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-		} catch (Exception e){
-			try {
-				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			} catch (Exception e2) {
-				
-			}
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e2) {
+			log.warn("Cannot use System Look and Feel.");
 		}
-		
+
 		// create Option objects
 		Option helpOpt = new Option("help", "print this message.");
 		options.addOption(helpOpt);
-		Option option = new Option("mapping", true,
-				"the mapping file, created by the GUI application");
+		Option option = new Option("mapping", true, "the mapping file, created by the GUI application");
 		option.setRequired(false);
 		options.addOption(option);
 
@@ -516,8 +484,7 @@ public class XmlMakerGui extends JFrame {
 		option.setRequired(false);
 		options.addOption(option);
 
-		option = new Option("flatfiles", true,
-				"names of the flat files in the right order, separated by comma");
+		option = new Option("flatfiles", true, "names of the flat files in the right order, separated by comma");
 		option.setRequired(false);
 		options.addOption(option);
 
@@ -572,11 +539,9 @@ public class XmlMakerGui extends JFrame {
 				}
 
 				if (dictionaries != null) {
-					String[] files = dictionaries.replaceAll("'", "")
-							.split(",");
+					String[] files = dictionaries.replaceAll("'", "").split(",");
 					for (int j = 0; j < files.length; j++) {
-						((DictionaryMapping) mapping.getDictionaries().get(j))
-								.setFileURL(files[j]);
+						((DictionaryMapping) mapping.getDictionaries().get(j)).setFileURL(files[j]);
 						System.out.println("dictionary " + j + ": " + files[j]);
 					}
 				}

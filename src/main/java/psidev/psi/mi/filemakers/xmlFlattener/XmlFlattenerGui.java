@@ -181,18 +181,15 @@ public class XmlFlattenerGui extends JFrame {
 		}
 	}
 
-	public static void main(String[] args) {		
+	public static void main(String[] args) {
+		
 		/*
 		 * Load look'n feel
 		 */
 		try {
-			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-		} catch (Exception e){
-			try {
-				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			} catch (Exception e2) {
-				
-			}
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e2) {
+			log.warn("Cannot use System Look and Feel.");
 		}
 		
 		XmlFlattenerGui f = new XmlFlattenerGui();
