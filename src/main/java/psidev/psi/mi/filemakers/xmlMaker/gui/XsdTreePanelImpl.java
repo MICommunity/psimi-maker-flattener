@@ -357,7 +357,7 @@ public class XsdTreePanelImpl extends
 		duplicateb.addActionListener(new DuplicateListener());
 
 		/* add a button for restauring original choice */
-		JButton choiceb = new JButton("Restaure");
+		JButton choiceb = new JButton("Restore");
 		Utils.setDefaultSize(choiceb);
 		choiceb.addActionListener(new OriginalNodeListener());
 
