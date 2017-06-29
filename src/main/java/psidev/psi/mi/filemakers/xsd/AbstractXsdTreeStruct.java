@@ -406,11 +406,22 @@ public abstract class AbstractXsdTreeStruct extends Observable {
         if (((Annotated) node.getUserObject()).getStructureType() == Structure.ATTRIBUTE) {
             return true;
         }
-        if (!((ElementDecl) node.getUserObject()).getType().isComplexType()) {
+        
+        
+        if (Group.class.isInstance(node.getUserObject())) {
+        	return false;
+        }
+        
+        if (null == ((ElementDecl) node.getUserObject()).getType()) {
+        	return true;
+        }
+        
+        if (false == ((ElementDecl) node.getUserObject()).getType().isComplexType()) {
             return true;
         }
+        
         if (((ElementDecl) node.getUserObject()).getType().getBaseType() != null) {
-            if (!((ElementDecl) node.getUserObject()).getType().getBaseType()
+            if (false == ((ElementDecl) node.getUserObject()).getType().getBaseType()
                     .isComplexType()) {
                 return true;
             }
