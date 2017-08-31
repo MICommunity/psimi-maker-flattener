@@ -32,6 +32,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ElementDecl;
@@ -42,6 +44,7 @@ import org.exolab.castor.xml.schema.XMLType;
 import org.xml.sax.SAXException;
 
 import psidev.psi.mi.filemakers.xmlMaker.mapping.TreeMapping;
+import psidev.psi.mi.filemakers.xsd.AbstractXsdTreeStruct;
 import psidev.psi.mi.filemakers.xsd.FileMakersException;
 import psidev.psi.mi.filemakers.xsd.MessageManagerInt;
 import psidev.psi.mi.filemakers.xsd.Utils;
@@ -60,6 +63,9 @@ import psidev.psi.mi.filemakers.xsd.XsdNode;
 public class XsdTreeStructImpl extends
 		psidev.psi.mi.filemakers.xsd.AbstractXsdTreeStruct {
 	 	
+	private static final Log log = LogFactory
+	            .getLog(XsdTreeStructImpl.class);
+	
 	/** keep the number of the line curently parsed */
 	private int lineNumber = 0;
 	
@@ -1411,11 +1417,8 @@ public class XsdTreeStructImpl extends
 	public void loadMapping(TreeMapping mapping) throws MalformedURLException {
 		
 		this.setId(mapping.getId());
-//		this.setSchemaURL(new File(mapping.getSchemaURL()).toURI().toURL());
 		this.setAutoDuplicate(mapping.isAutoDuplicate());
 		this.setManageChoices(mapping.isManageChoices());
-
-//		this.setExpendChoices(mapping.expendChoices);
 
 		int i = 0;
 		while (i < mapping.getExpendChoices().size()) {
@@ -1423,9 +1426,6 @@ public class XsdTreeStructImpl extends
 			i++;
 			String choice = (String) mapping.getExpendChoices().get(i);
 			i++;
-//			int index = path.indexOf(".");
-//			String subpath = path;
-
 			if (choice != null) {
 				redoChoice(path, choice);
 			} else { /* duplication */
@@ -1434,55 +1434,55 @@ public class XsdTreeStructImpl extends
 			
 		}
 
-//		for (i = 0; i < mapping.associatedAutogeneration.size(); i++) {
 		for (String path : mapping.getAssociatedAutogeneration()) {
 			XsdNode node = getNodeByPath(path);
 			node.useOnlyThis();
 			associateAutoGenerateValue(node);
 		}
 
-//		it = mapping.associatedValues.keySet().iterator();
-//		while (it.hasNext()) {
+		int idx = 0;
+		
 		for (String path : mapping.getAssociatedValues().keySet()){
-//			String path = (String) it.next();
-//			String field = (String) mapping.associatedValues.get(path);
+	
+			idx++;
 			XsdNode node = getNodeByPath(path);
+			
+			if (null == node ) {
+				// try again
+				/**
+				 * TODO: this has been done because 
+				 * an exception was raised on the first attempt.
+				 * We should find out why and fix it.
+				 */
+				log.error("try again: " + node);
+				node = getNodeByPath(path);
+			}
+			
 			if (node == null) {
-				System.err.println("No node: " + path);
+				System.err.println("No node for associated value: " + path);
 			} else {
 				node.useOnlyThis();
 				this.associatedValues.put(node, mapping.getAssociatedValues().get(path));
 			}
 		}
 
-//		it = mapping.validationRegexps.keySet().iterator();
-//		while (it.hasNext()) {
 		for (String path :mapping.getValidationRegexps().keySet()) {
-//			String field = (String) mapping.validationRegexps.get(path);
 			XsdNode node = getNodeByPath(path);
 			this.validationRegexps.put(node, mapping.getValidationRegexps()
 					.get(path));
 		}
 
-//		it = mapping.associatedOpenDictionary.keySet().iterator();
-//		while (it.hasNext()) {
-//			String path = (String) it.next();
 		for (String path : mapping.getAssociatedOpenDictionary().keySet()) {
 			this.associatedOpenDictionary.put(getNodeByPath(path),
 					mapping.getAssociatedOpenDictionary().get(path));
 		}
 
-//		it = mapping.associatedClosedDictionary.keySet().iterator();
-//		while (it.hasNext()) {
-//			String path = (String) it.next();
+
 		for (String path : mapping.getAssociatedClosedDictionary().keySet()) {
 			this.associatedClosedDictionary.put(getNodeByPath(path),
 					mapping.getAssociatedClosedDictionary().get(path));
 		}
 
-//		it = mapping.associatedDictionaryColumn.keySet().iterator();
-//		while (it.hasNext()) {
-//			String path = (String) it.next();
 		for (String path : mapping.getAssociatedDictionaryColumn().keySet()) {
 			associatedDictionaryColumn.put(getNodeByPath(path),
 					mapping.getAssociatedDictionaryColumn().get(path));
@@ -1495,11 +1495,6 @@ public class XsdTreeStructImpl extends
 							.get(i)));
 		}
 
-//		Iterator<String> it;
-//		
-//		it = mapping.associatedDuplicableFields.keySet().iterator();
-//		while (it.hasNext()) {
-//			String path = (String) it.next();
 		for (String path : mapping.getAssociatedDuplicableFields().keySet()) {
 			XsdNode node = getNodeByPath(path);
 			node.useOnlyThis();
@@ -1507,9 +1502,6 @@ public class XsdTreeStructImpl extends
 					mapping.getAssociatedDuplicableFields().get(path));
 		}
 
-//		it = mapping.associatedFields.keySet().iterator();
-//		while (it.hasNext()) {
-//			String path = (String) it.next();
 		for (String path : mapping.getAssociatedFields().keySet()) {
 			XsdNode node = getNodeByPath(path);
 			node.useOnlyThis();
@@ -1517,11 +1509,13 @@ public class XsdTreeStructImpl extends
 					.get(path));
 		}
 
-//		for (i = 0; i < mapping.unduplicableNodes.size(); i++) {
 		for (String path: mapping.getUnduplicableNodes()) {
 			XsdNode node = getNodeByPath(path);
 			unduplicableNodes.add(node);
 		}
+		
+		log.error("Load mapping done");
+		
 	}
 
 	/**
@@ -1759,16 +1753,7 @@ public class XsdTreeStructImpl extends
 				.write("<!-- created using XmlMakerFlattener v2 (http://code.google.com/p/xmlmakerflattener/) -->");
 		getMessageManager().sendMessage("start marshalling to file :"
 				+ outFile.getName() + " at " + new Date() , MessageManagerInt.simpleMessage);
-		
-//		XsdNode root = ((XsdNode) treeModel.getRoot());
-//	
-//		AttributeDecl annotated = new AttributeDecl(this.schema);
-//		annotated.setName("ciccio");
-//		annotated.setDefaultValue("beeeloooooooooooooooo");
-//		
-//				((Annotated) root.getUserObject()).
-//		root.add(new XsdNode(annotated));
-//		
+
 		try {
 			out.write(xmlMake());
 		} catch (FileMakersException fme) {
@@ -1777,15 +1762,6 @@ public class XsdTreeStructImpl extends
 		} catch (java.lang.NullPointerException npe) {
 			getMessageManager().sendMessage("marshalling failed", MessageManagerInt.errorMessage);
 		}
-
-//		String warning = this.errorManager.getAllErrors(this, (XsdNode) treeModel.getRoot(),
-//				ErrorManager.warning);
-//		String errors = this.errorManager.getAllErrors(this, (XsdNode) treeModel.getRoot(),
-//				ErrorManager.error);
-//		if (warning.length() > 0 || errors.length() > 0) {
-//			logoutPrintWriter.write("line :" //+ lineNumber + "\n"
-//					+ warning + "\n" + errors + "\n");
-//		}
 		
 		getMessageManager().sendMessage("marshalling done, finished at " + new Date()
 				, MessageManagerInt.simpleMessage);
@@ -1814,12 +1790,8 @@ public class XsdTreeStructImpl extends
 	 *  
 	 */
 	public String xmlMake(XsdNode node) throws IOException, FileMakersException {
-		lastId = 0;
-		
-		return xmlMakeElement(node);
-		//return null;
-		/* to reinitialize the display */
-		//check(node);
+		lastId = 0;		
+		return xmlMakeElement(node);	
 	}
 
 
@@ -1883,9 +1855,7 @@ public class XsdTreeStructImpl extends
 				/* marshall all subelemets */
 				/* make filter */
 				/* how many sub elements */
-//				String p1 = getPathForNode(child);
-//				HashMap h = associatedDuplicableFields;
-								
+						
 				String tmpPath = (String) associatedDuplicableFields.get(child);
 				if (pathFilter != null && false == unduplicableNodes.contains(node)) {
 						String[] filters = pathFilter.split("\\.");
@@ -2032,13 +2002,10 @@ public class XsdTreeStructImpl extends
 		
 		/* check number of each element */
 		boolean errors = false;
-//		Iterator<String> names = minOccurs.keySet().iterator();
 
 		Iterator<Integer> mins = minOccurs.values().iterator();
 		Iterator<Object> maxs = maxOccurs.values().iterator();
 		for (String name : minOccurs.keySet()) {
-//		while (names.hasNext()) {
-//			String name = (String) names.next();
 			if ((mins.next()).intValue() > 0) {
 				getMessageManager().sendMessage(printPath(node.getPath()) + ": a " + name + " is missing! (line : " + lineNumber + ")", MessageManagerInt.errorMessage);
 				errors = true;
@@ -2062,13 +2029,10 @@ public class XsdTreeStructImpl extends
 		
 		/* attributes */
 		ArrayList<String> checkedAttributes = new ArrayList<String>();
-//		for (int i = 0; i < attributeList.size(); i++) {
 		for (XsdNode attribute : attributeList) {
 			checkedAttributes.add(attribute.getName());
 			if (getValue(attribute) == null || getValue(attribute).length() == 0) {
 				if (attribute.isRequired) {
-//					errorManager.addMessage(node, "attibute  " + attribute + " is required for " + node,
-//							ErrorManager.error);
 					getMessageManager().sendMessage(printPath(node.getPath()) + " attibute  " + attribute + " is required for " + node + " (line : " + lineNumber + ")", MessageManagerInt.errorMessage);
 					errors = true;
 				} 
