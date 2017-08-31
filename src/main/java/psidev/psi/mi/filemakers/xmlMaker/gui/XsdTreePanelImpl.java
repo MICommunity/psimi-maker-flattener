@@ -630,7 +630,6 @@ public class XsdTreePanelImpl extends
 			} catch (Exception ex) {
 				xsdTree.getMessageManager().sendMessage("unable to load file",
 						MessageManagerInt.errorMessage);
-				log.error("pb: ", ex);
 			}
 		}
 	}

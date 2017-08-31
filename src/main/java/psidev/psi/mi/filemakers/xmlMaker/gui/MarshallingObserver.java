@@ -36,6 +36,9 @@ import psidev.psi.mi.filemakers.xsd.Utils;
  *         arnaud.ceol@gmail.com
  */
 public class MarshallingObserver extends JFrame implements Observer, Runnable {
+	
+	private static final long serialVersionUID = 1L;
+
 	JTextArea editorPane = new JTextArea();
 
 	JTextField linePane = new JTextField();

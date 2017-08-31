@@ -1826,7 +1826,7 @@ public class XsdTreeStructImpl extends
 				}
 				break;
 			case Structure.GROUP:
-				getMessageManager().sendMessage("should not be any group...." + child, MessageManagerInt.warningMessage);
+				getMessageManager().sendMessage("There should not be any group...." + child, MessageManagerInt.warningMessage);
 				if (child.isUsed())
 					groupList.add(child);
 				break;
@@ -2007,7 +2007,7 @@ public class XsdTreeStructImpl extends
 		Iterator<Object> maxs = maxOccurs.values().iterator();
 		for (String name : minOccurs.keySet()) {
 			if ((mins.next()).intValue() > 0) {
-				getMessageManager().sendMessage(printPath(node.getPath()) + ": a " + name + " is missing! (line : " + lineNumber + ")", MessageManagerInt.errorMessage);
+				getMessageManager().sendMessage(printPath(node.getPath()) + ": a " + name + " is missing! (line : " + lineNumber + ")", MessageManagerInt.warningMessage);
 				errors = true;
 			}
 
@@ -2033,7 +2033,7 @@ public class XsdTreeStructImpl extends
 			checkedAttributes.add(attribute.getName());
 			if (getValue(attribute) == null || getValue(attribute).length() == 0) {
 				if (attribute.isRequired) {
-					getMessageManager().sendMessage(printPath(node.getPath()) + " attibute  " + attribute + " is required for " + node + " (line : " + lineNumber + ")", MessageManagerInt.errorMessage);
+					getMessageManager().sendMessage(printPath(node.getPath()) + " attibute  " + attribute + " is required for " + node + " (line : " + lineNumber + ")", MessageManagerInt.warningMessage);
 					errors = true;
 				} 
 				else {
