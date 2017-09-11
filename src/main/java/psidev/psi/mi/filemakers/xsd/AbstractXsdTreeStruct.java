@@ -665,10 +665,11 @@ public abstract class AbstractXsdTreeStruct extends Observable {
 						} catch (java.lang.ArrayIndexOutOfBoundsException aiobe) {
 							/*
 							 * to keep compatibility: if mapping done without auto-duplication of nodes and
-							 * applied without this option, an exception will be rised if the node has not
+							 * applied without this option, an exception will be raised if the node has not
 							 * been manually duplicated. In this case try to duplicate "upper" node.
 							 */
 							/* get upper node's index */
+							log.error("Index: " + path + " -> " + choice + " , " +index );
 							duplicateNode((XsdNode) currentNode.getChildAt(index - 1));
 							currentNode = (XsdNode) currentNode.getChildAt(index);
 							aiobe.printStackTrace();

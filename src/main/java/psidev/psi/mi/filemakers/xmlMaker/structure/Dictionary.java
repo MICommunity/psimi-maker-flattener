@@ -22,6 +22,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import psidev.psi.mi.filemakers.xmlMaker.mapping.DictionaryMapping;
 import psidev.psi.mi.filemakers.xsd.Utils;
 
@@ -38,6 +41,8 @@ import psidev.psi.mi.filemakers.xsd.Utils;
  */
 public class Dictionary {
 
+	private static final Log log = LogFactory.getLog(Dictionary.class);
+	
 	public int index;
 
 	/**
@@ -112,7 +117,7 @@ public class Dictionary {
 						maxDefinitionsNumber = definitions.size();
 						maxDefinitionLine = line;
 					}
-
+log.error("Dictionary: " +value + " -> " + definitions );
 					if (!caseSensitive) {
 						dictionnary
 								.put(value.toLowerCase().trim(), definitions);
@@ -179,9 +184,12 @@ public class Dictionary {
 	 * @return the definition
 	 */
 	public String getDefinition(String value, int definitionNumber) {
+		
+		String definition = null;
+		
 		try {
 			if (caseSensitive) {
-				return (String) ((ArrayList<String>) dictionnary.get(value))
+				definition=  (String) ((ArrayList<String>) dictionnary.get(value))
 						.get(definitionNumber - 1);
 			}
 			/*
@@ -189,14 +197,18 @@ public class Dictionary {
 			 * the definitions
 			 */
 			else {
-				return (String) ((ArrayList<String>) dictionnary.get(value
+				
+				definition =  (String) ((ArrayList<String>) dictionnary.get(value
 						.toLowerCase())).get(definitionNumber - 1);
 			}
 		} catch (NullPointerException e) {
-			return null;
+			definition =  null;
 		} catch (IndexOutOfBoundsException e2) {
-			return null;
+			definition = null;
 		}
+
+		return definition;
+		
 	}
 
 	public String[] exampleList() {
