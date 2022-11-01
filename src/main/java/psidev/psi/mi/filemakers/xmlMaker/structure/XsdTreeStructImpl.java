@@ -739,10 +739,10 @@ public class XsdTreeStructImpl extends
 		
 		if (node.transparent) {
 			boolean checkedOk = true;
-			Enumeration<XsdNode> children = node.children();
+			Enumeration<TreeNode> children = node.children();
 
 			while (children.hasMoreElements()) {
-				XsdNode child = children.nextElement();
+				XsdNode child = (XsdNode) children.nextElement();
 				if (false == check(child)) {
 //					getMessageManager().sendMessage(printPath(node.getPath()) +" missing value", MessageManagerInt.errorMessage);
 					checkedOk = false;
@@ -753,7 +753,7 @@ public class XsdTreeStructImpl extends
 		}
 
 		
-		Enumeration<XsdNode> children = node.children();
+		Enumeration<TreeNode> children = node.children();
 		
 		// if it doesn't have children, treat it as an attribute
 		if (false == children.hasMoreElements()) {
@@ -1130,7 +1130,7 @@ public class XsdTreeStructImpl extends
 		 * get every childs of the node get the structureType of the userElement
 		 * and use the apropriate marshaller
 		 */
-		Enumeration<XsdNode> children = node.children();
+		Enumeration<TreeNode> children = node.children();
 		while (children.hasMoreElements()) {
 			XsdNode child = (XsdNode) children.nextElement();
 			switch (((Annotated) child.getUserObject()).getStructureType()) {
@@ -1171,9 +1171,9 @@ public class XsdTreeStructImpl extends
 	public String previewGroup(XsdNode node) {
 
 		String group = "";
-		Enumeration<XsdNode> elements = node.children();
+		Enumeration<TreeNode> elements = node.children();
 		while (elements.hasMoreElements()) {
-			String element = previewNode(elements.nextElement());
+			String element = previewNode((XsdNode) elements.nextElement());
 			if (element != null)
 				group += element;
 		}
