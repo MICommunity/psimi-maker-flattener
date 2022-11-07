@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if ["$#" -ne 3]; then
+if [ "$#" -ne 3 ]; then
     echo "USAGE ./map-folder.sh INPUT_FOLDER MAPPING_FILE OUTPUT_FOLDER"
     echo ""
     echo "INPUT_FOLDER can contain the prefix of the flat files"
