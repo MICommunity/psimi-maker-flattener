@@ -512,13 +512,13 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 		// keep last node duplicable
 
-		Enumeration<XsdNode> children = value.children();
+		Enumeration<TreeNode> children = value.children();
 		int nb = 0;
 		while (nb <= 1 && !selections.contains(tmp)) {
 
 			if (children.hasMoreElements()) {
 				XsdNode child;
-				child = children.nextElement();
+				child = (XsdNode) children.nextElement();
 				if (child.isUsed()) {
 					tmp = child;
 					nb++;
@@ -646,7 +646,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 *            the path to access to the node
 	 */
 	public int getMaxCount(Node element, XsdNode parent, XsdNode target,
-			Enumeration<XsdNode> path) {
+			Enumeration<TreeNode> path) {
 		if (target == parent) {
 			if (elementFilters.containsKey(parent)) {
 				String value = ((Element) element).getAttributeNode(
@@ -665,7 +665,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		int max = 0;
 
 		path.nextElement();
-		XsdNode nextNode = path.nextElement();
+		XsdNode nextNode = (XsdNode) path.nextElement();
 
 		/* get all childrens and refs */
 		NodeList childrens = element.getChildNodes();
@@ -680,9 +680,9 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			 */
 			if (xmlChild.getNodeType() == Structure.ATTRIBUTE) {
 
-				Enumeration<XsdNode> xsdChildrens = nextNode.children();
+				Enumeration<TreeNode> xsdChildrens = nextNode.children();
 				while (xsdChildrens.hasMoreElements()) {
-					XsdNode xsdChild = xsdChildrens.nextElement();
+					XsdNode xsdChild = (XsdNode) xsdChildrens.nextElement();
 
 					if (elementFilters.containsKey(xsdChild)) {
 						try {
@@ -793,9 +793,9 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 		/** first check if the element do not have to be filtered */
 		if (false == empty) {
-			Enumeration<XsdNode> children = xsdNode.children();
+			Enumeration<TreeNode> children = xsdNode.children();
 			while (children.hasMoreElements()) {
-				XsdNode child = children.nextElement();
+				XsdNode child = (XsdNode) children.nextElement();
 
 				if (((Annotated) child.getUserObject()).getStructureType() == Structure.ATTRIBUTE) {
 					if (elementFilters.containsKey(child)) {
@@ -844,9 +844,9 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		}
 
 		// Enumeration
-		Enumeration<XsdNode> children = xsdNode.children();
+		Enumeration<TreeNode> children = xsdNode.children();
 		while (children.hasMoreElements()) {
-			XsdNode child = children.nextElement();
+			XsdNode child = (XsdNode) children.nextElement();
 			if (child.isUsed()) {
 				switch (((Annotated) child.getUserObject()).getStructureType()) {
 				case Structure.ELEMENT:
@@ -974,7 +974,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			out += xsdNode.getName() + getCurrentPath();// nextNumber(node);
 		}
 
-		Enumeration<XsdNode> children = xsdNode.children();
+		Enumeration<TreeNode> children = xsdNode.children();
 
 		if (xsdNode.isDuplicable() && false == currentPath.isEmpty()) {
 			Integer i = currentPath.remove(currentPath.size() - 1);
@@ -982,7 +982,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		}
 
 		while (children.hasMoreElements()) {
-			XsdNode xsdChild = children.nextElement();
+			XsdNode xsdChild = (XsdNode) children.nextElement();
 
 			if (xsdChild.isUsed()) {
 				switch (((Annotated) xsdChild.getUserObject())
@@ -1121,10 +1121,10 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			else
 				marshalling += separator;
 
-			Enumeration<XsdNode> children = node.children();
+			Enumeration<TreeNode> children = node.children();
 			boolean filtered = false;
 			while (children.hasMoreElements()) {
-				XsdNode child = children.nextElement();
+				XsdNode child = (XsdNode) children.nextElement();
 
 				if (((Annotated) child.getUserObject()).getStructureType() == Structure.ATTRIBUTE) {
 					if (elementFilters.containsKey(child)) {
@@ -1144,9 +1144,9 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			}
 		}
 
-		Enumeration<XsdNode> children = node.children();
+		Enumeration<TreeNode> children = node.children();
 		while (children.hasMoreElements()) {
-			XsdNode child = children.nextElement();
+			XsdNode child = (XsdNode) children.nextElement();
 			if (child.isUsed()) {
 				switch (((Annotated) child.getUserObject()).getStructureType()) {
 				case Structure.ELEMENT:
@@ -1371,9 +1371,9 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		if (node == parent) {
 			return getMaxCount(node);
 		}
-		Enumeration<XsdNode> e = node.pathFromAncestorEnumeration(parent);
+		Enumeration<TreeNode> e = node.pathFromAncestorEnumeration(parent);
 		e.nextElement();
-		XsdNode nextNode = e.nextElement();
+		XsdNode nextNode = (XsdNode) e.nextElement();
 		return getMaxCount(parent) * getMaxCount(node, nextNode);
 	}
 
@@ -1471,10 +1471,10 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 */
 	private ArrayList<XsdNode> getNextSelectedChildren(XsdNode xsdNode) {
 		ArrayList<XsdNode> xsdNodes = new ArrayList<XsdNode>();
-		Enumeration<XsdNode> children = xsdNode.children();
+		Enumeration<TreeNode> children = xsdNode.children();
 
 		while (children.hasMoreElements()) {
-			XsdNode child = children.nextElement();
+			XsdNode child = (XsdNode) children.nextElement();
 
 			if (child.isUsed()) {
 				xsdNodes.add(child);

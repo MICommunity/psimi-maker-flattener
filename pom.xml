@@ -8,15 +8,15 @@
     <artifactId>xmlMakerFlattener</artifactId>
     <packaging>jar</packaging>
 
-    <version>2.2.1</version>
+    <version>2.3.0</version>
 
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>11</source>
+                    <target>11</target>
                     <excludes>
                         <exclude>**/test/**/*.java</exclude>
                     </excludes>

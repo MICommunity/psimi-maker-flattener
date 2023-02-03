@@ -1110,10 +1110,10 @@ public abstract class AbstractXsdTreeStruct extends Observable {
 	 * @return
 	 */
 	protected Iterator<XsdNode> getChildren(XsdNode node) {
-		Enumeration<XsdNode> enumeration = node.children();
-		ArrayList<XsdNode> children = new ArrayList<XsdNode>();
+		Enumeration<TreeNode> enumeration = node.children();
+		ArrayList<XsdNode> children = new ArrayList<>();
 		while (enumeration.hasMoreElements()) {
-			XsdNode child = enumeration.nextElement();
+			XsdNode child = (XsdNode) enumeration.nextElement();
 			if (child.transparent) {
 				Iterator<XsdNode> littleChildren = getChildren(child);
 				while (littleChildren.hasNext()) {

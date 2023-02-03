@@ -281,7 +281,7 @@ public class XsdNode extends DefaultMutableTreeNode {
 	 */
 	public void setSuperChecked() {
 		this.isSuperChecked = true;
-		Enumeration<XsdNode> children = this.children();
+		Enumeration<TreeNode> children = this.children();
 		while (children.hasMoreElements()) {
 			((XsdNode) children.nextElement()).setSuperChecked();
 		}
@@ -306,9 +306,9 @@ public class XsdNode extends DefaultMutableTreeNode {
 	public void clean() {		
 		ArrayList<XsdNode> previousChildren = new ArrayList<XsdNode>();
 		
-		Enumeration<XsdNode> children = this.children();
+		Enumeration<TreeNode> children = this.children();
 		while (children.hasMoreElements()) {
-			XsdNode child = children.nextElement();
+			XsdNode child = (XsdNode) children.nextElement();
 			if (child.isUsed()) {
 				child.clean();
 				previousChildren.add(child);
