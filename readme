@@ -41,7 +41,7 @@ Linux:
       sh bin/xmlmaker -mapping <mapping-file.xml>   -o <output xmlDocument>  -dictionaries <dictionaries>  -flatfiles <flat files>
 
 
-    * Maker without Graphical User Interface:
+    * Maker with Graphical User Interface:
 
       sh bin/xmlmaker-gui
 
@@ -62,7 +62,7 @@ windows:
       bin/xmlmaker -mapping <mapping-file.xml>   -o <output xmlDocument>  -dictionaries <dictionaries>  -flatfiles <flat files>
 
 
-    * Maker without Graphical User Interface:
+    * Maker with Graphical User Interface:
 
       bin/xmlmaker-gui.bat
 
