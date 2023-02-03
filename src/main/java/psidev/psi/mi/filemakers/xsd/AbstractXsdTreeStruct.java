@@ -39,6 +39,7 @@ import org.apache.commons.logging.LogFactory;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ComplexType;
+import org.exolab.castor.xml.schema.ContentModelGroup;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Group;
 import org.exolab.castor.xml.schema.Order;
@@ -705,31 +706,25 @@ public abstract class AbstractXsdTreeStruct extends Observable {
 							possibilities.add(XsdNode.choiceToString((Group) choices.get(i)));
 						}
 					}
-					XsdNode newNode;
 
-					newNode = new XsdNode(choices.get(possibilities.indexOf(choice)));
-					newNode.isRequired = currentNode.isRequired;
-
-					/**
-					 * If the max occurs is specified, transfer it to the child.
-					 */
-					/**
-					 * TODO: check if we should verify that max/min is indedd specified for the
-					 * group.
-					 */
-					newNode.min = g.getMinOccurs(); // node.min;
-					newNode.max = g.getMaxOccurs(); // node.max;
-
-					//
-					// newNode.min = currentNode.min;
-					// newNode.max = currentNode.max;
-					newNode.originalParent = currentNode;
-
-					currentNode.transparent = true;
-					currentNode.isExtended = true;
-					currentNode.add(newNode);
-
-					currentNode = newNode;
+					Annotated chosenChoice = choices.get(possibilities.indexOf(choice));
+                    // If the selected choice is a group of elements, we need to create a new node for each of them.
+                    // Otherwise, we create a new node for the element chosen.
+                    // This code to handle a choice with group of elements differently was added because of the
+                    // complexType 'bibref', which has a choice with two sequence nodes (one with two element nodes,
+                    // the other one with one element node).
+                    // Without this code, mapping set for the 'bibref' type was not being saved.
+					if (chosenChoice.getStructureType() == Structure.GROUP) {
+						Enumeration<ElementDecl> elements = ((Group) chosenChoice).enumerate();
+						while (elements.hasMoreElements()) {
+							ElementDecl elementDecl = elements.nextElement();
+							XsdNode newNode = newNodeFromElement(currentNode, elementDecl);
+							addNewNodeToCurrentNode(currentNode, newNode);
+						}
+					} else {
+						XsdNode newNode = newNodeFromChoice(currentNode, g, chosenChoice);
+						addNewNodeToCurrentNode(currentNode, newNode);
+					}
 				}
 			} catch (StringIndexOutOfBoundsException e) {
 				e.printStackTrace();
@@ -964,7 +959,7 @@ public abstract class AbstractXsdTreeStruct extends Observable {
 				node.add(new XsdNode(attributes.nextElement()));
 			}
 
-			Enumeration<Particle> elements = ((ComplexType) type).enumerate();
+			Enumeration<Particle> elements = getElementsFromType(type);
 			while (elements.hasMoreElements()) {
 				Particle ptc = elements.nextElement();
 				XsdNode child = new XsdNode((Annotated) ptc);
@@ -1130,6 +1125,58 @@ public abstract class AbstractXsdTreeStruct extends Observable {
 		}
 
 		return children.iterator();
+	}
+
+	private XsdNode newNodeFromElement(XsdNode currentNode, ElementDecl elementDecl) {
+		XsdNode newNode = new XsdNode(elementDecl);
+		newNode.isRequired = currentNode.isRequired;
+		newNode.min = elementDecl.getMinOccurs();
+		newNode.max = elementDecl.getMaxOccurs();
+		return newNode;
+	}
+
+	private XsdNode newNodeFromChoice(XsdNode currentNode, Group g, Annotated choice) {
+		XsdNode newNode = new XsdNode(choice);
+		newNode.isRequired = currentNode.isRequired;
+		// If the max occurs is specified, transfer it to the child.
+		newNode.min = g.getMinOccurs();
+		newNode.max = g.getMaxOccurs();
+		return newNode;
+	}
+
+	private void addNewNodeToCurrentNode(XsdNode currentNode, XsdNode newNode) {
+		currentNode.transparent = true;
+		currentNode.isExtended = true;
+		currentNode.add(newNode);
+	}
+
+	private boolean isGroupParticleWithChoiceOrder(Particle ptc) {
+		return ptc.getStructureType() == Structure.GROUP && ((Group) ptc).getOrder().getType() == Order.CHOICE;
+	}
+
+	private Enumeration<Particle> getElementsFromType(XMLType type) {
+        // If a type has a single node of type sequence containing a single node of type choice, then the code
+        // interprets the sequence node as a choice and the user is presented with two consecutive choices.
+        // First, a choice with a single option and then the actual choice with the right options.
+		// To avoid this, if we find a type with a single group node (sequence with choice order) containing
+		// a single group node (with choice order), then we enumerate the elements from the sequence to get
+        // the actual choice options. With this approach, the user will be presented with just one choice
+        // to select.
+        // This code to handle a sequence with a single choice element was added because of the complexType
+        // 'interactionList', which has a single sequence node with a single choice node containing multiple
+        // elements.
+        // Without this code, mapping set for the 'interactionList' type could not be loaded.
+		if (((ContentModelGroup) type).getParticleCount() == 1) {
+			Particle ptc = ((ContentModelGroup) type).getParticle(0);
+			if (isGroupParticleWithChoiceOrder(ptc) &&
+					((Group) ptc).getContentModelGroup().getParticleCount() == 1) {
+				Particle childPtc = ((Group) ptc).getContentModelGroup().getParticle(0);
+				if (isGroupParticleWithChoiceOrder(childPtc)) {
+					return ((Group) ptc).enumerate();
+				}
+			}
+		}
+		return ((ComplexType) type).enumerate();
 	}
 
 }

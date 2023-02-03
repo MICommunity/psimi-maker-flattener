@@ -60,6 +60,7 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 
+/.idea/
+/*.xsd
 xmlMakerFlattener.iml
-.idea/
 
