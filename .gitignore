@@ -63,3 +63,6 @@ buildNumber.properties
 
 /.idea/
 /*.xsd
+
+.DS_STORE
+log4j.log
