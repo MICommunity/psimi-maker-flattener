@@ -1077,9 +1077,10 @@ public class XsdTreeStructImpl extends
 		
 		// if root node :
 		if (node == treeModel.getRoot()) {
-			attributesString += " xsi:schemaLocation=\""+schema.getTargetNamespace()+" "+schemaURL+"\"";
+			attributesString += " xsi:schemaLocation=\""+schema.getTargetNamespace()+" "+getRemoteSchemaUrl()+"\"";
 			attributesString += " xmlns=\""+schema.getTargetNamespace()+"\"";
-			attributesString += " xmlns:xsi=\""+schema.getSchemaNamespace()+"\"";		
+//			attributesString += " xmlns:xsi=\""+schema.getSchemaNamespace()+"\"";
+			attributesString += " xmlns:xsi=\""+AbstractXsdTreeStruct.XML_SCHEMA+"\"";
 		}
 		
 		attributesString = attributesString.trim();
@@ -1090,6 +1091,31 @@ public class XsdTreeStructImpl extends
 		if (isEmptyElement)
 			return "\n" + indentation + "<" + node.toString() + attributesString + "/>";
 		return "\n" + indentation + "<" + node.toString() + attributesString + ">";
+	}
+
+	private String getRemoteSchemaUrl() {
+		String schemaUrlStr = schemaURL.toString();
+		if (schemaUrlStr.matches(".*MIF300(\\.[0-9]+)*\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/3.0/src/MIF300.xsd";
+		} else if (schemaUrlStr.matches(".*MIF254(\\.[0-9]+)*\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/2.5/src/MIF254.xsd";
+		} else if (schemaUrlStr.matches(".*MIF253(\\.[0-9]+)*\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/2.5/src/MIF253.xsd";
+		} else if (schemaUrlStr.matches(".*MIF252(\\.[0-9]+)*\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/2.5/src/MIF252.xsd";
+		} else if (schemaUrlStr.matches(".*MIF251(\\.[0-9]+)*\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/2.5/src/MIF251.xsd";
+		} else if (schemaUrlStr.matches(".*MIF250(\\.[0-9]+)*\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/2.5/src/MIF250.xsd";
+		} else if (schemaUrlStr.matches(".*MIF25(\\.[0-9]+)*\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/2.5/src/MIF25.xsd";
+		} else if (schemaUrlStr.matches(".*MIF2(\\.[0-9]+)*\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/2.0/src/MIF2.xsd";
+		} else if (schemaUrlStr.matches(".*MIF\\.xsd")) {
+			return "https://raw.githubusercontent.com/HUPO-PSI/miXML/master/1.0/src/MIF.xsd";
+		} else {
+			return schemaUrlStr;
+		}
 	}
 
 
@@ -1748,9 +1774,7 @@ public class XsdTreeStructImpl extends
 		Writer out = new BufferedWriter(new FileWriter(outFile));
 
 		observable.setMessage("output file: " + outFile.getName());
-		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		out
-				.write("<!-- created using XmlMakerFlattener v2 (http://code.google.com/p/xmlmakerflattener/) -->");
+		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		getMessageManager().sendMessage("start marshalling to file :"
 				+ outFile.getName() + " at " + new Date() , MessageManagerInt.simpleMessage);
 
