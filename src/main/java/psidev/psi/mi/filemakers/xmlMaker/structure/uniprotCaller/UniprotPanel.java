@@ -33,7 +33,7 @@ public class UniprotPanel extends JPanel {
         filePanel.add(fetchFileButton()).setPreferredSize(new Dimension(50, 25));
 
         JPanel fileProcessingPanel = new JPanel();
-        fileProcessingPanel.setLayout(new BoxLayout(fileProcessingPanel, BoxLayout.Y_AXIS));  // Correct usage for fileProcessingPanel
+        fileProcessingPanel.setLayout(new BoxLayout(fileProcessingPanel, BoxLayout.Y_AXIS));
         fileProcessingPanel.setPreferredSize(new Dimension(50, 125));
 
         suggestedOrganismsIds = new JComboBox<>(suggestedOrganisms.getOrganismDisplayNames());
