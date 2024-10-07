@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -67,6 +68,8 @@ import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Structure;
 
 import psidev.psi.mi.filemakers.xmlMaker.structure.XsdTreeStructImpl;
+import psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller.UniprotPanel;
+import psidev.psi.mi.filemakers.xsd.AbstractXsdTreePanel;
 import psidev.psi.mi.filemakers.xsd.MessageManagerInt;
 import psidev.psi.mi.filemakers.xsd.Utils;
 import psidev.psi.mi.filemakers.xsd.XsdNode;
@@ -82,7 +85,7 @@ import psidev.psi.mi.filemakers.xsd.XsdNode;
  * 
  */
 public class XsdTreePanelImpl extends
-		psidev.psi.mi.filemakers.xsd.AbstractXsdTreePanel {
+		AbstractXsdTreePanel {
 
 	private static final Log log = LogFactory.getLog(XsdTreePanelImpl.class);
 
@@ -144,6 +147,12 @@ public class XsdTreePanelImpl extends
 	 * panel for dictionnaries
 	 */
 	public DictionaryPanel dictionaryPanel;
+
+
+	/**
+	 * panel for uniprot ac
+	 */
+	public UniprotPanel uniprotPanel;
 
 	/**
 	 * @return Returns the associationButtons.
@@ -426,7 +435,7 @@ public class XsdTreePanelImpl extends
 		editFieldb.addActionListener(new EditFieldAssociationListener());
 		associationBox.add(editFieldb);
 		associationBox.add(dictionnaryAssociation);
-		associationBox.add(defaultAssociation);
+//		associationBox.add(defaultAssociation); // TODO: why is it duplicated?
 		associationBox.add(defaultAssociation);
 		associationBox.add(autoGenerationAssociationButton);
 
@@ -452,10 +461,13 @@ public class XsdTreePanelImpl extends
 		dictionaryPanel = d;
 	}
 
+	public void setUniprotPanel(UniprotPanel p) {
+		uniprotPanel = p;
+	}
 	/**
 	 * associate this Panel to a FlatFileTabbedPanel
 	 * 
-	 * @param d
+	 * @param panel
 	 *            a FlatFileTabbedPanel
 	 */
 	public void setTabFileTabbedPanel(FlatFileTabbedPanel panel) {
@@ -873,7 +885,7 @@ public class XsdTreePanelImpl extends
 						.setText(((XsdTreeStructImpl) xsdTree)
 								.previewNode((XsdNode) ((XsdTreeStructImpl) xsdTree).tree
 										.getLastSelectedPathComponent()));
-			} catch (java.lang.NullPointerException noNodeExeption) {
+			} catch (NullPointerException noNodeExeption) {
 				/* no node selected */
 				editorPane.setText("No preview available.");
 			}
@@ -981,7 +993,7 @@ public class XsdTreePanelImpl extends
 							+ " ("
 							+ ((AttributeDecl) node.getUserObject())
 									.getSimpleType().getName() + ")      ");
-				} catch (java.lang.NullPointerException npe) {
+				} catch (NullPointerException npe) {
 					/* no type defined, assume it's text */
 					setText(getText() + " (" + "no type" + ")      ");
 				}
@@ -1210,7 +1222,7 @@ public class XsdTreePanelImpl extends
 			if (afp.regexp.getText().trim().length() > 0) {
 				try {
 					Pattern.compile(afp.regexp.getText().trim());
-				} catch (java.util.regex.PatternSyntaxException pse) {
+				} catch (PatternSyntaxException pse) {
 					xsdTree.getMessageManager().sendMessage(
 							"unvalid regular expression",
 							MessageManagerInt.errorMessage);

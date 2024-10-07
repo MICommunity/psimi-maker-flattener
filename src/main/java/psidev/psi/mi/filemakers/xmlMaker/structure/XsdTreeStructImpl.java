@@ -44,7 +44,7 @@ import org.exolab.castor.xml.schema.XMLType;
 import org.xml.sax.SAXException;
 
 import psidev.psi.mi.filemakers.xmlMaker.mapping.TreeMapping;
-import psidev.psi.mi.filemakers.xsd.AbstractXsdTreeStruct;
+import psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller.UniprotPanel;
 import psidev.psi.mi.filemakers.xsd.FileMakersException;
 import psidev.psi.mi.filemakers.xsd.MessageManagerInt;
 import psidev.psi.mi.filemakers.xsd.Utils;
@@ -102,6 +102,8 @@ public class XsdTreeStructImpl extends
 
 
 	public DictionaryContainer dictionaries = new DictionaryContainer();
+
+	public UniprotPanel uniprotPanel = new UniprotPanel();
 
 	public ArrayList<XsdNode> unduplicableNodes = new ArrayList<XsdNode>();
 

@@ -67,6 +67,7 @@ import psidev.psi.mi.filemakers.xmlMaker.mapping.TreeMapping;
 import psidev.psi.mi.filemakers.xmlMaker.structure.Dictionary;
 import psidev.psi.mi.filemakers.xmlMaker.structure.FlatFile;
 import psidev.psi.mi.filemakers.xmlMaker.structure.XsdTreeStructImpl;
+import psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller.UniprotPanel;
 import psidev.psi.mi.filemakers.xsd.JTextPaneMessageManager;
 import psidev.psi.mi.filemakers.xsd.Utils;
 import psidev.psi.mi.filemakers.xsd.XsdNode;
@@ -89,11 +90,106 @@ import psidev.psi.mi.filemakers.xsd.XsdNode;
  */
 public class XmlMakerGui extends JFrame {
 
-
 	private static final Log log = LogFactory
      .getLog(XmlMakerGui.class);
 	
 	static String mappingFileName = null;
+
+	public static void main(String[] args){
+
+		Options options = new Options();
+
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e2) {
+			log.warn("Cannot use System Look and Feel.");
+		}
+
+		// create Option objects
+		Option helpOpt = new Option("help", "print this message.");
+		options.addOption(helpOpt);
+		Option option = new Option("mapping", true, "the mapping file, created by the GUI application");
+		option.setRequired(false);
+		options.addOption(option);
+
+		option = new Option("o", true, "xml document");
+		option.setRequired(false);
+		options.addOption(option);
+
+		option = new Option("flatfiles", true, "names of the flat files in the right order, separated by comma");
+		option.setRequired(false);
+		options.addOption(option);
+
+		option = new Option("dictionaries", true,
+				"names of the dictionary files in the right order, separated by comma");
+		option.setRequired(false);
+		options.addOption(option);
+
+		option = new Option("schema", true, "the XML schema");
+		option.setRequired(false);
+		options.addOption(option);
+
+		// create the parser
+		CommandLineParser parser = new BasicParser();
+		CommandLine line = null;
+		try {
+			// parse the command line arguments
+			line = parser.parse(options, args, true);
+		} catch (ParseException exp) {
+			displayUsage(options);
+			System.exit(1);
+		}
+
+		if (line.hasOption("help")) {
+			displayUsage(options);
+			System.exit(0);
+		}
+
+		String mappingFileName = line.getOptionValue("mapping");
+		String flatFiles = line.getOptionValue("flatfiles");
+		String dictionaries = line.getOptionValue("dictionaries");
+		String schema = line.getOptionValue("schema");
+
+		// These argument are mandatory.
+		mappingFileName = line.getOptionValue("mapping");
+
+		XmlMakerGui xml = new XmlMakerGui();
+
+		if (mappingFileName != null) {
+			try {
+				FileInputStream fin = new FileInputStream(mappingFileName);
+				// Create XML decoder.
+				XMLDecoder xdec = new XMLDecoder(fin);
+				Mapping mapping = (Mapping) xdec.readObject();
+
+				if (flatFiles != null) {
+					String[] files = flatFiles.replaceAll("'", "").split(",");
+					for (int j = 0; j < files.length; j++) {
+						((FlatFileMapping) mapping.getFlatFiles().get(j)).setFileURL(files[j]);
+						System.out.println("flat file " + j + ": " + files[j]);
+					}
+				}
+
+				if (dictionaries != null) {
+					String[] files = dictionaries.replaceAll("'", "").split(",");
+					for (int j = 0; j < files.length; j++) {
+						((DictionaryMapping) mapping.getDictionaries().get(j)).setFileURL(files[j]);
+						System.out.println("dictionary " + j + ": " + files[j]);
+					}
+				}
+
+				if (schema != null) {
+					mapping.getTree().setSchemaURL(schema.replaceAll("'", ""));
+				}
+
+				xml.load(mapping);
+			} catch (FileNotFoundException e) {
+				System.err.println("File not found : " + mappingFileName);
+			}
+		}
+
+	}
+
 
 	private static void displayUsage(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
@@ -316,6 +412,8 @@ public class XmlMakerGui extends JFrame {
 
 	public DictionaryPanel dictionnaryLists;
 
+	public UniprotPanel uniprotPanel;
+
 	public XsdTreeStructImpl xsdTree;
 
 	public XmlMakerGui() {
@@ -334,6 +432,9 @@ public class XmlMakerGui extends JFrame {
 		dictionnaryLists = new DictionaryPanel(xsdTree.dictionaries);
 		dictionnaryLists.setBorder(new TitledBorder("Dictionnary"));
 
+		uniprotPanel = new UniprotPanel();
+		uniprotPanel.setBorder(new TitledBorder("Uniprot Acs"));
+
 		Box associationsPanels = new Box(BoxLayout.Y_AXIS);
 
 		associationsPanels.add(flatFileTabbedPanel);
@@ -341,10 +442,13 @@ public class XmlMakerGui extends JFrame {
 		associationsPanels.add(dictionnaryLists);
 		getContentPane().add(associationsPanels, BorderLayout.WEST);
 
+		associationsPanels.add(uniprotPanel);
+
 		getContentPane().add(treePanel, BorderLayout.CENTER);
 
 		treePanel.setTabFileTabbedPanel(flatFileTabbedPanel);
 		treePanel.setDictionnaryPanel(dictionnaryLists);
+		treePanel.setUniprotPanel(uniprotPanel);
 		final CloseView fv = new CloseView();
 		addWindowListener(fv);
 		setJMenuBar(new XmlMakerMenu());
@@ -463,100 +567,6 @@ public class XmlMakerGui extends JFrame {
 		}
 	}
 
-	public static void main(String[] args) {
-
-		Options options = new Options();
-
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e2) {
-			log.warn("Cannot use System Look and Feel.");
-		}
-
-		// create Option objects
-		Option helpOpt = new Option("help", "print this message.");
-		options.addOption(helpOpt);
-		Option option = new Option("mapping", true, "the mapping file, created by the GUI application");
-		option.setRequired(false);
-		options.addOption(option);
-
-		option = new Option("o", true, "xml document");
-		option.setRequired(false);
-		options.addOption(option);
-
-		option = new Option("flatfiles", true, "names of the flat files in the right order, separated by comma");
-		option.setRequired(false);
-		options.addOption(option);
-
-		option = new Option("dictionaries", true,
-				"names of the dictionary files in the right order, separated by comma");
-		option.setRequired(false);
-		options.addOption(option);
-
-		option = new Option("schema", true, "the XML schema");
-		option.setRequired(false);
-		options.addOption(option);
-
-		// create the parser
-		CommandLineParser parser = new BasicParser();
-		CommandLine line = null;
-		try {
-			// parse the command line arguments
-			line = parser.parse(options, args, true);
-		} catch (ParseException exp) {
-			displayUsage(options);
-			System.exit(1);
-		}
-
-		if (line.hasOption("help")) {
-			displayUsage(options);
-			System.exit(0);
-		}
-
-		String mappingFileName = line.getOptionValue("mapping");
-		String flatFiles = line.getOptionValue("flatfiles");
-		String dictionaries = line.getOptionValue("dictionaries");
-		String schema = line.getOptionValue("schema");
-
-		// These argument are mandatory.
-		mappingFileName = line.getOptionValue("mapping");
-
-		XmlMakerGui xml = new XmlMakerGui();
-
-		if (mappingFileName != null) {
-			try {
-				FileInputStream fin = new FileInputStream(mappingFileName);
-				// Create XML decoder.
-				XMLDecoder xdec = new XMLDecoder(fin);
-				Mapping mapping = (Mapping) xdec.readObject();
-
-				if (flatFiles != null) {
-					String[] files = flatFiles.replaceAll("'", "").split(",");
-					for (int j = 0; j < files.length; j++) {
-						((FlatFileMapping) mapping.getFlatFiles().get(j)).setFileURL(files[j]);
-						System.out.println("flat file " + j + ": " + files[j]);
-					}
-				}
-
-				if (dictionaries != null) {
-					String[] files = dictionaries.replaceAll("'", "").split(",");
-					for (int j = 0; j < files.length; j++) {
-						((DictionaryMapping) mapping.getDictionaries().get(j)).setFileURL(files[j]);
-						System.out.println("dictionary " + j + ": " + files[j]);
-					}
-				}
-
-				if (schema != null) {
-					mapping.getTree().setSchemaURL(schema.replaceAll("'", ""));
-				}
-
-				xml.load(mapping);
-			} catch (FileNotFoundException e) {
-				System.err.println("File not found : " + mappingFileName);
-			}
-		}
-
-	}
 
 	public class LoadListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -584,6 +594,8 @@ public class XmlMakerGui extends JFrame {
 
 		treePanel.setTabFileTabbedPanel(flatFileTabbedPanel);
 		treePanel.setDictionnaryPanel(dictionnaryLists);
+		treePanel.setUniprotPanel(uniprotPanel);
+
 
 		treePanel.xsdTree.treeModel.reload();
 		treePanel.xsdTree.emptySelectionLists();
