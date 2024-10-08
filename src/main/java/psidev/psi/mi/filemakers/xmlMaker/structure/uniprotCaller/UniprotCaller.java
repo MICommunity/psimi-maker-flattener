@@ -1,10 +1,9 @@
 package psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -15,43 +14,45 @@ import java.util.Map;
 
 public class UniprotCaller {
 
-    private static final Log log = LogFactory.getLog(UniprotCaller.class);
-//    https://rest.uniprot.org/uniprotkb/search?query=O95905%20AND%20organism_id:9606
-    private static final String UNIPROT_API_URL = "https://rest.uniprot.org/uniprotkb/search?query=";
+    // https://rest.uniprot.org/uniprotkb/search?query=(xref:GeneID-945%20AND%20organism_id:9606)&format=json&fields=accession,xref_geneid,organism_id
     Map<String, String> alreadyParsed = new HashMap<>();
+    ArrayList<String> resultNotFound = new ArrayList<>();
 
     public String fetchUniprotResults(String protein, String organismId) {
-        String urlString = UNIPROT_API_URL + protein + "%20AND%20organism_id:" + organismId;
+        String urlString = uniprotQueryConstructor(protein, organismId);
         if (alreadyParsed.containsKey(protein)) {
             return alreadyParsed.get(protein);
-        }
-        else {
+        } else {
             try {
                 URL uniprotURL = new URL(urlString);
                 HttpURLConnection connection = (HttpURLConnection) uniprotURL.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Accept", "application/json");
+
                 try (BufferedReader queryResults = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     StringBuilder content = new StringBuilder();
                     String inputLine;
                     while ((inputLine = queryResults.readLine()) != null) {
                         content.append(inputLine);
                     }
-                    JsonObject jsonResponse = JsonParser.parseString(content.toString()).getAsJsonObject();
-                    String uniprotAccession = getUniprotAC(jsonResponse);
-//                    log.info("BIGGEST SEQUENCE: " + uniprotAccession);
-                    System.out.println("New Uniprot AC found: " + uniprotAccession);
-                    alreadyParsed.put(protein, uniprotAccession);
-                    return uniprotAccession;
+                    JsonElement parsedElement = JsonParser.parseString(content.toString());
+                    JsonObject jsonResponse = parsedElement.getAsJsonObject();
+                    String uniprotAccession = getUniprotAC(jsonResponse, protein);
+                    if (uniprotAccession != null) {
+                        alreadyParsed.put(protein, uniprotAccession);
+                        return uniprotAccession;
+                    } else {
+                        resultNotFound.add(protein);
+                        System.out.println("No uniprot results found for: " + protein);
+                    }
                 }
             } catch (Exception e) {
-                log.error("No Uniprot accession results found", e);
+                System.out.println("Error while fetching uniprot results: " + e.getMessage());
             }
         }
         return null;
     }
-
-    public String getUniprotAC(JsonObject results) {
+    public String getUniprotAC(JsonObject results, String protein) {
         ArrayList<JsonObject> swissProtUniprotACs = new ArrayList<>();
         ArrayList<JsonObject> tremblUniprotACs = new ArrayList<>();
 
@@ -60,23 +61,37 @@ public class UniprotCaller {
             for (int i = 0; i < resultsAsJson.size(); i++) {
                 JsonObject result = resultsAsJson.get(i).getAsJsonObject();
                 if (result.has("entryType")) {
-                    String entryType = result.get("entryType").getAsString();
-                    if (entryType.equals("UniProtKB reviewed (Swiss-Prot)")) {
-                        swissProtUniprotACs.add(result);
-                    } else if (entryType.equals("UniProtKB unreviewed (TrEMBL)")) {
-                        tremblUniprotACs.add(result);
+                    switch (result.get("entryType").getAsString()) {
+                        case "UniProtKB reviewed (Swiss-Prot)":
+                            swissProtUniprotACs.add(result);
+                            break;
+                        case "UniProtKB unreviewed (TrEMBL)":
+                            tremblUniprotACs.add(result);
+                            break;
+                        case "Inactive":
+                            return result.get("inactiveReason").getAsJsonObject().get("mergeDemergeTo").getAsString();
+                        default:
+                            break;
                     }
+//                if (result.has("entryType")) {
+//                    String entryType = result.get("entryType").getAsString();
+//                    if (entryType.equals("UniProtKB reviewed (Swiss-Prot)")) {
+//                        swissProtUniprotACs.add(result);
+//                    } else if (entryType.equals("UniProtKB unreviewed (TrEMBL)")) {
+//                        tremblUniprotACs.add(result);
+//                    }
+//                    if (entryType.equals("Inactive") && result.get("primaryAccession").getAsString().equals(protein)) {
+//                        return result.get("inactiveReason").getAsJsonObject().get("mergeDemergeTo").getAsString();
+//                    }
                 }
             }
         }
-
-        log.info("NUMBER OF RESULTS: " + (swissProtUniprotACs.size() + tremblUniprotACs.size()));
-        sortArrayBySequenceLength(swissProtUniprotACs);
-        sortArrayBySequenceLength(tremblUniprotACs);
-         return chooseUniprotAc(swissProtUniprotACs, tremblUniprotACs);
+        return chooseUniprotAc(swissProtUniprotACs, tremblUniprotACs);
     }
 
     public String chooseUniprotAc(ArrayList<JsonObject> swissProtUniprotACs, ArrayList<JsonObject> tremblUniprotACs) {
+        sortArrayBySequenceLength(swissProtUniprotACs);
+        sortArrayBySequenceLength(tremblUniprotACs);
         if (!swissProtUniprotACs.isEmpty()) {
             return swissProtUniprotACs.get(0).get("primaryAccession").getAsString();
         } else if (!tremblUniprotACs.isEmpty()) {
@@ -95,18 +110,29 @@ public class UniprotCaller {
                 : 0;
     }
 
-    public void printResults(ArrayList<JsonObject> swissProtUniprotACs, ArrayList<JsonObject> tremblUniprotACs) {
-        printAccessionResults(swissProtUniprotACs, "Swiss-Prot");
-        printAccessionResults(tremblUniprotACs, "TrEMBL");
+    private String uniprotQueryConstructor(String query, String organismId) {
+        String uniprotApiUrl = "https://rest.uniprot.org/uniprotkb/search?query=(xref:";
+        String db = chooseDb(query);
+        String uniprotApiUrlPart2 = "%20AND%20organism_id:";
+        String uniprotApiUrlPart3 = ")&format=json&fields=accession,organism_id";
+        if (db != null) {
+            return uniprotApiUrl + db  + uniprotApiUrlPart2 + organismId + uniprotApiUrlPart3;
+        }
+        else {
+            return "https://rest.uniprot.org/uniprotkb/search?query=accession:" + query;
+        }
     }
 
-    private void printAccessionResults(ArrayList<JsonObject> uniprotACs, String type) {
-        for (JsonObject result : uniprotACs) {
-            String accession = result.get("primaryAccession").getAsString();
-            String sequence = result.has("sequence") && result.getAsJsonObject("sequence").has("value")
-                    ? result.getAsJsonObject("sequence").get("value").getAsString()
-                    : "";
-            log.info("Accession: " + accession + ", Sequence length: " + sequence.length() + ", Type: " + type);
+    public String chooseDb(String query) {
+        if (query.matches("^(NM|NP|NR|NC)_[0-9]{1,8}$")) {
+            return "RefSeq-" + query;
         }
+        if (!query.matches(".*[^0-9].*")) {
+            return "GeneID-" + query;
+        }
+        if (query.matches("^ENSG\\d{11}$")){
+            return "ensembl-" + query;
+        }
+        return null;
     }
 }

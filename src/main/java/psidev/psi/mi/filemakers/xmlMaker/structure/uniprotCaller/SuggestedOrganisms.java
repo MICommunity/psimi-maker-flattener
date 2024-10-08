@@ -41,8 +41,6 @@ public class SuggestedOrganisms {
         organismMap.put("243277", "Vibrio cholerae serotype O1 (243277)");
     }
 
-
-
     public String[] getOrganismDisplayNames() {
         return organismMap.values().toArray(new String[0]); // Return values as display names
     }

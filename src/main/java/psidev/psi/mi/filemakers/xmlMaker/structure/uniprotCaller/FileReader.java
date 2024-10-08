@@ -1,9 +1,8 @@
 package psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.poi.ss.usermodel.*;
 
+import org.apache.poi.ss.usermodel.*;
+import javax.swing.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,20 +11,18 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class FileReader {
-
-    private static final Log log = LogFactory.getLog(FileReader.class);
     Workbook workbook;
 
     public Workbook readExcelFile(URL fileUrl) {
-        log.info("Reading file from URL: " + fileUrl);
-        System.out.println("Reading Excel file");
         try {
             File file = Paths.get(fileUrl.toURI()).toFile();
             workbook = WorkbookFactory.create(file);
-            System.out.println("Number of sheets: " + workbook.getNumberOfSheets());
             getSheetsNames(workbook);
         } catch (Exception e) {
-            System.out.println("Error reading Excel file");
+            JOptionPane.showMessageDialog(new JFrame(),
+                    "Unable to load file! Please provide a file under the xls format!",
+                    "ERROR",
+                    JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
             throw new RuntimeException(e);
         }
@@ -52,17 +49,25 @@ public class FileReader {
         }
 
         if (selectedColumnIndex != -1) {
-            System.out.println("Found " + selectedColumn + " in column: " + selectedColumnIndex);
-            insertColumnWithUniprotResults(sheet, selectedColumnIndex + 1, formatter, organismId);
-            System.out.println("New column inserted with UniProt results.");
+            insertColumnWithUniprotResults(sheet, selectedColumnIndex, formatter, organismId);
         } else {
-            System.out.println(selectedColumn + " column not found.");
+            JOptionPane.showMessageDialog(new JFrame(),
+                    "Column not found",
+                    "ERROR",
+                    JOptionPane.ERROR_MESSAGE);
         }
 
-        try (FileOutputStream fileOut = new FileOutputStream("updated_PublicationFile.xls")) {
+        try (FileOutputStream fileOut = new FileOutputStream("updated.xls")) {
             workbook.write(fileOut);
+            JOptionPane.showMessageDialog(new JFrame(),
+                    "New column inserted with UniProt accession numbers!",
+                    "SUCCESS",
+                    JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
-            System.out.println("Error writing Excel file");
+            JOptionPane.showMessageDialog(new JFrame(),
+                    "Error writing Excel file",
+                    "ERROR",
+                    JOptionPane.ERROR_MESSAGE);
             throw new RuntimeException(e);
         }
     }
@@ -90,7 +95,13 @@ public class FileReader {
             Cell previousCell = row.getCell(columnIndex);
             if (previousCell != null) {
                 String geneValue = formatter.formatCellValue(previousCell);
-                String uniprotResult = uniprotCaller.fetchUniprotResults(geneValue, organismId);
+                String uniprotResult;
+                if (rowIndex == 0) {
+                    uniprotResult = "UniprotAc " + geneValue;
+                }
+                else {
+                    uniprotResult = uniprotCaller.fetchUniprotResults(geneValue, organismId);
+                }
                 Cell newCell = row.createCell(columnIndex);
                 newCell.setCellValue(uniprotResult);
             }
