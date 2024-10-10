@@ -4,6 +4,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import psidev.psi.mi.filemakers.xsd.AbstractXsdTreeStruct;
+import psidev.psi.mi.filemakers.xsd.MessageManagerInt;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -17,6 +20,7 @@ public class UniprotCaller {
     // https://rest.uniprot.org/uniprotkb/search?query=(xref:GeneID-945%20AND%20organism_id:9606)&format=json&fields=accession,xref_geneid,organism_id
     Map<String, String> alreadyParsed = new HashMap<>();
     ArrayList<String> resultNotFound = new ArrayList<>();
+    public AbstractXsdTreeStruct xsdTree;
 
     public String fetchUniprotResults(String protein, String organismId) {
         String urlString = uniprotQueryConstructor(protein, organismId);
@@ -42,12 +46,13 @@ public class UniprotCaller {
                         alreadyParsed.put(protein, uniprotAccession);
                         return uniprotAccession;
                     } else {
-                        resultNotFound.add(protein);
-                        System.out.println("No uniprot results found for: " + protein);
+                        alreadyParsed.put(protein, " ");
+                        System.out.println("No Uniprot results found for: " + protein);
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Error while fetching uniprot results: " + e.getMessage());
+                xsdTree.getMessageManager().sendMessage("no node selected", MessageManagerInt.errorMessage);
+                System.out.println("Error while fetching Uniprot results: " + e.getMessage());
             }
         }
         return null;

@@ -21,7 +21,7 @@ public class FileFetcher {
     public void fetchFile() throws IOException {
         try {
             String defaultDirectory = Utils.lastVisitedDirectory;
-            if (Utils.lastVisitedDictionaryDirectory != null)
+            if (Utils.lastVisitedDirectory != null)
                 defaultDirectory = Utils.lastVisitedDictionaryDirectory;
 
             JFileChooser fc = new JFileChooser(defaultDirectory);

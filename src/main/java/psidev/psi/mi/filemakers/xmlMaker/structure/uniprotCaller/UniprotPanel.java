@@ -2,6 +2,10 @@ package psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import psidev.psi.mi.filemakers.xsd.AbstractXsdTreeStruct;
+import psidev.psi.mi.filemakers.xsd.AbstractXsdTreePanel;
+import psidev.psi.mi.filemakers.xsd.MessageManagerInt;
+import psidev.psi.mi.filemakers.xsd.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,6 +22,8 @@ public class UniprotPanel extends JPanel {
     private final JComboBox<String> columns = new JComboBox<>();
     FileReader fileReader = new FileReader();
     String selectedOrganism = null;
+    public AbstractXsdTreeStruct xsdTree;
+
 
     public UniprotPanel() {
         setLayout(new BorderLayout());
@@ -30,6 +36,10 @@ public class UniprotPanel extends JPanel {
 //        JButton openFileButton = fetchFileButton();
 //        openFileButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+
+//        JButton fetchFileButton = fetchFileButton();
+//        Utils.setDefaultSize(fetchFileButton);
+//        filePanel.add(fetchFileButton);
         filePanel.add(fetchFileButton()).setPreferredSize(new Dimension(50, 25));
 
         JPanel fileProcessingPanel = new JPanel();
@@ -78,8 +88,10 @@ public class UniprotPanel extends JPanel {
     public JButton processFileButton() {
         JButton processFile = new JButton("Process file");
         processFile.addActionListener(e -> {
+            System.out.println("Processing file...");
             URL fileUrl = fileFetcher.getFileUrl();
             if (fileUrl != null) {
+//                xsdTree.getMessageManager().sendMessage("Processing file", MessageManagerInt.simpleMessage);
                 // Get the user input directly from the combo box
                 String selectedDisplayName = (String) suggestedOrganismsIds.getSelectedItem();
                 selectedOrganism = selectedDisplayName;

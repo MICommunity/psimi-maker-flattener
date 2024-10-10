@@ -1,6 +1,5 @@
 package psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller;
 
-
 import org.apache.poi.ss.usermodel.*;
 import javax.swing.*;
 import java.io.File;
@@ -12,6 +11,7 @@ import java.util.*;
 
 public class FileReader {
     Workbook workbook;
+    MoleculeSetChecker moleculeSetChecker = new MoleculeSetChecker();
 
     public Workbook readExcelFile(URL fileUrl) {
         try {
@@ -20,12 +20,13 @@ public class FileReader {
             getSheetsNames(workbook);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(new JFrame(),
-                    "Unable to load file! Please provide a file under the xls format!",
+                    "Unable to load file! Please provide a file under the excel xls format!",
                     "ERROR",
                     JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+        moleculeSetChecker.parseMoleculeSetFile();
         return workbook;
     }
 
@@ -75,7 +76,7 @@ public class FileReader {
     /**
      * Insert a column to the right of the 'gene' column and populate it with the results from uniprotCaller.
      */
-    public static void insertColumnWithUniprotResults(Sheet sheet, int columnIndex, DataFormatter formatter, String organismId) {
+    public void insertColumnWithUniprotResults(Sheet sheet, int columnIndex, DataFormatter formatter, String organismId) {
         UniprotCaller uniprotCaller = new UniprotCaller();
         for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
             Row row = sheet.getRow(rowIndex);
@@ -104,6 +105,7 @@ public class FileReader {
                 }
                 Cell newCell = row.createCell(columnIndex);
                 newCell.setCellValue(uniprotResult);
+                highlightCells(newCell);
             }
         }
     }
@@ -154,4 +156,14 @@ public class FileReader {
         }
         return columnsNamesArrayList.toArray(new String[0]);
     }
+
+    public void highlightCells(Cell cell) {
+        if (moleculeSetChecker.isProteinPartOfMoleculeSet(cell.getStringCellValue())) {
+            CellStyle cellStyle = cell.getSheet().getWorkbook().createCellStyle();
+            cellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+            cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cell.setCellStyle(cellStyle);
+        }
+    }
+
 }
