@@ -10,8 +10,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 public class MoleculeSetChecker {
 
@@ -22,8 +21,10 @@ public class MoleculeSetChecker {
 
     private final DataFormatter formatter = new DataFormatter();
     private final Map<String, String> proteinAndMoleculeSet = new HashMap<>();
+    private final UniprotCallerUtils uniprotCallerUtils = new UniprotCallerUtils();
 
     public MoleculeSetChecker() {
+        configureLogger();
         parseMoleculeSetFile();
     }
 
@@ -37,16 +38,14 @@ public class MoleculeSetChecker {
     }
 
     public void parseMoleculeSetFile() {
-        try (Workbook workbook = readFile()) {
+        try (Workbook workbook = uniprotCallerUtils.readFile(MOLECULE_SET_PATH)) {
             Sheet sheet = workbook.getSheetAt(0);
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) {
                     continue;
                 }
-
                 String proteins = formatter.formatCellValue(row.getCell(PROTEINS_CELL_INDEX));
                 String moleculeSetAc = formatter.formatCellValue(row.getCell(MOLECULE_SET_AC_COLUMN_INDEX));
-
                 if (!proteins.isEmpty() && !moleculeSetAc.isEmpty()) {
                     for (String protein : proteins.split(",")) {
                         protein = protein.trim(); // Trim spaces
@@ -54,6 +53,7 @@ public class MoleculeSetChecker {
                     }
                 }
             }
+            log.log(Level.INFO, "Molecule set file parsed");
         } catch (IOException e) {
             log.log(Level.SEVERE, "Failed to parse molecule set file", e);
         }
@@ -62,4 +62,11 @@ public class MoleculeSetChecker {
     public boolean isProteinPartOfMoleculeSet(String proteinAc) {
         return proteinAndMoleculeSet.containsKey(proteinAc);
     }
+
+    private void configureLogger() {
+        log.setLevel(Level.INFO);
+        log.addHandler(new ConsoleHandler());
+        log.setUseParentHandlers(false);
+    }
+
 }

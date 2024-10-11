@@ -147,7 +147,7 @@ public abstract class AbstractXsdTreePanel extends JPanel {
 		} catch (FileNotFoundException fe) {
 			xsdTree.getMessageManager().sendMessage(
 					"File " + fileChooser.getSelectedFile().getName()
-							+ " not fount", MessageManagerInt.errorMessage);
+							+ " not found", MessageManagerInt.errorMessage);
 		} catch (IOException ioe) {
 			xsdTree.getMessageManager().sendMessage(
 					"Unable to load file "
@@ -184,7 +184,7 @@ public abstract class AbstractXsdTreePanel extends JPanel {
 		} catch (MalformedURLException fe) {
 			xsdTree.getMessageManager().sendMessage(
 					"URL " + value
-							+ " not fount", MessageManagerInt.errorMessage);
+							+ " not found", MessageManagerInt.errorMessage);
 		} catch (IOException ioe) {
 			ioe.printStackTrace(System.err);
 			xsdTree.getMessageManager().sendMessage(

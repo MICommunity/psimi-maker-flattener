@@ -4,108 +4,125 @@ import org.apache.poi.ss.usermodel.*;
 import javax.swing.*;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FileReader {
-    Workbook workbook;
-    MoleculeSetChecker moleculeSetChecker = new MoleculeSetChecker();
+    private Workbook workbook;
+    private static final Logger log = Logger.getLogger(FileReader.class.getName());
+
+    private final MoleculeSetChecker moleculeSetChecker = new MoleculeSetChecker();
+    private final UniprotCallerUtils uniprotCallerUtils = new UniprotCallerUtils();
+    private final UniprotCaller uniprotCaller = new UniprotCaller();
+    private final DataFormatter formatter = new DataFormatter();
+
+    public FileReader() {
+        configureLogger();
+    }
+
+    private void configureLogger() {
+        log.setLevel(Level.INFO);
+        log.setUseParentHandlers(false);
+    }
 
     public Workbook readExcelFile(URL fileUrl) {
         try {
             File file = Paths.get(fileUrl.toURI()).toFile();
-            workbook = WorkbookFactory.create(file);
+            workbook = uniprotCallerUtils.readFile(file.getAbsolutePath());
+            log.log(Level.INFO, "Successfully loaded workbook from {0}", fileUrl);
             getSheetsNames(workbook);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(new JFrame(),
-                    "Unable to load file! Please provide a file under the excel xls format!",
-                    "ERROR",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            showErrorDialog("Unable to load file! Please provide a file in the Excel xls format!");
+            log.log(Level.SEVERE, "Failed to load Excel file", e);
             throw new RuntimeException(e);
         }
         moleculeSetChecker.parseMoleculeSetFile();
         return workbook;
     }
 
-    /**
-     * Method to check if a 'gene' column exists, insert a new column, and populate the new column with uniprot results.
-     */
-    //TODO: Should we add try catch for the header and the sheets selection? Since we are fetching them directly from
-    // file aleardy?
-
-    public void checkAndInsertUniprotResults(String sheetSelected, String organismId, String selectedColumn) {
+    public void checkAndInsertUniprotResults(String sheetSelected, String organismId, String selectedColumn, URL fileUrl) {
         Sheet sheet = workbook.getSheet(sheetSelected);
-        Row headerRow = sheet.getRow(0);
-        DataFormatter formatter = new DataFormatter();
-        int selectedColumnIndex = -1;
+        if (sheet == null) {
+            showErrorDialog("Sheet not found");
+            log.log(Level.WARNING, "Sheet {0} not found", sheetSelected);
+            return;
+        }
+        int selectedColumnIndex = findColumnIndex(sheet, selectedColumn);
+        if (selectedColumnIndex != -1) {
+            insertColumnWithUniprotResults(sheet, selectedColumnIndex, organismId);
+        } else {
+            showErrorDialog("Column not found");
+            log.log(Level.WARNING, "Column {0} not found", selectedColumn);
+        }
+        writeWorkbookToFile(fileUrl);
+    }
 
+    private int findColumnIndex(Sheet sheet, String selectedColumn) {
+        Row headerRow = sheet.getRow(0);
         for (Cell cell : headerRow) {
             if (formatter.formatCellValue(cell).contains(selectedColumn)) {
-                selectedColumnIndex = cell.getColumnIndex();
-                break;
+                return cell.getColumnIndex();
             }
         }
+        return -1;
+    }
 
-        if (selectedColumnIndex != -1) {
-            insertColumnWithUniprotResults(sheet, selectedColumnIndex, formatter, organismId);
-        } else {
-            JOptionPane.showMessageDialog(new JFrame(),
-                    "Column not found",
-                    "ERROR",
-                    JOptionPane.ERROR_MESSAGE);
-        }
+    private void writeWorkbookToFile(URL fileUrl) {
+        try {
+            File inputFile = Paths.get(fileUrl.toURI()).toFile();
+            String inputFileName = inputFile.getName().substring(0, inputFile.getName().lastIndexOf('.'));
+            String outputFileName = inputFile.getParent() + File.separator + inputFileName + "_updated.xls";
 
-        try (FileOutputStream fileOut = new FileOutputStream("updated.xls")) {
-            workbook.write(fileOut);
-            JOptionPane.showMessageDialog(new JFrame(),
-                    "New column inserted with UniProt accession numbers!",
-                    "SUCCESS",
-                    JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(new JFrame(),
-                    "Error writing Excel file",
-                    "ERROR",
-                    JOptionPane.ERROR_MESSAGE);
+            try (FileOutputStream fileOut = new FileOutputStream(outputFileName)) {
+                workbook.write(fileOut);
+                showInfoDialog("New column inserted with UniProt accession numbers in " + outputFileName);
+                log.log(Level.INFO, "Successfully wrote updated file to {0}", outputFileName);
+            }
+        } catch (Exception e) {
+            showErrorDialog("Error writing Excel file");
+            log.log(Level.SEVERE, "Failed to write updated Excel file", e);
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * Insert a column to the right of the 'gene' column and populate it with the results from uniprotCaller.
-     */
-    public void insertColumnWithUniprotResults(Sheet sheet, int columnIndex, DataFormatter formatter, String organismId) {
-        UniprotCaller uniprotCaller = new UniprotCaller();
+    public void insertColumnWithUniprotResults(Sheet sheet, int columnIndex, String organismId) {
         for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
             Row row = sheet.getRow(rowIndex);
             if (row == null) {
                 row = sheet.createRow(rowIndex);
             }
-
-            for (int colNum = row.getLastCellNum(); colNum >= columnIndex; colNum--) {
-                Cell oldCell = row.getCell(colNum);
-                Cell newCell = row.createCell(colNum + 1);
-
-                if (oldCell != null) {
-                    cloneCell(oldCell, newCell);
-                }
-            }
-
+            shiftCellsToTheRight(row, columnIndex);
             Cell previousCell = row.getCell(columnIndex);
             if (previousCell != null) {
                 String geneValue = formatter.formatCellValue(previousCell);
-                String uniprotResult;
+                Optional<String> uniprotResultOpt;
                 if (rowIndex == 0) {
-                    uniprotResult = "UniprotAc " + geneValue;
+                    uniprotResultOpt = Optional.of("UniprotAc " + geneValue); // geneValue == header cell
+                } else {
+                    uniprotResultOpt = uniprotCaller.fetchUniprotResults(geneValue, organismId);
                 }
-                else {
-                    uniprotResult = uniprotCaller.fetchUniprotResults(geneValue, organismId);
+                if (uniprotResultOpt.isPresent()) {
+                    Cell newCell = row.createCell(columnIndex);
+                    newCell.setCellValue(uniprotResultOpt.get());
+                    if (moleculeSetChecker.isProteinPartOfMoleculeSet(uniprotResultOpt.get())) {
+                        highlightCells(newCell);
+                    }
+                } else {
+                    row.createCell(columnIndex);
                 }
-                Cell newCell = row.createCell(columnIndex);
-                newCell.setCellValue(uniprotResult);
-                highlightCells(newCell);
+            }
+        }
+    }
+
+    private void shiftCellsToTheRight(Row row, int columnIndex) {
+        for (int colNum = row.getLastCellNum(); colNum > columnIndex; colNum--) {
+            Cell oldCell = row.getCell(colNum - 1);
+            Cell newCell = row.createCell(colNum);
+            if (oldCell != null) {
+                cloneCell(oldCell, newCell);
             }
         }
     }
@@ -138,23 +155,22 @@ public class FileReader {
         }
     }
 
-    public String[] getSheetsNames(Workbook workbook){
-        ArrayList<String> sheetsNamesArrayList = new ArrayList<>();
-        for (int i = 0; i < workbook.getNumberOfSheets(); i++){
-            sheetsNamesArrayList.add(workbook.getSheetName(i));
+    public String[] getSheetsNames(Workbook workbook) {
+        List<String> sheetsNames = new ArrayList<>();
+        for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+            sheetsNames.add(workbook.getSheetName(i));
         }
-        return sheetsNamesArrayList.toArray(new String[0]);
+        return sheetsNames.toArray(new String[0]);
     }
 
-    public String[] getColumnsNames(Sheet sheet){
-        ArrayList<String> columnsNamesArrayList = new ArrayList<>();
+    public String[] getColumnsNames(Sheet sheet) {
+        List<String> columnsNames = new ArrayList<>();
         Row headerRow = sheet.getRow(0);
-        DataFormatter formatter = new DataFormatter();
         for (int i = 0; i < headerRow.getLastCellNum(); i++) {
             Cell cell = headerRow.getCell(i);
-            columnsNamesArrayList.add(formatter.formatCellValue(cell));
+            columnsNames.add(formatter.formatCellValue(cell));
         }
-        return columnsNamesArrayList.toArray(new String[0]);
+        return columnsNames.toArray(new String[0]);
     }
 
     public void highlightCells(Cell cell) {
@@ -166,4 +182,11 @@ public class FileReader {
         }
     }
 
+    private void showErrorDialog(String message) {
+        JOptionPane.showMessageDialog(new JFrame(), message, "ERROR", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showInfoDialog(String message) {
+        JOptionPane.showMessageDialog(new JFrame(), message, "SUCCESS", JOptionPane.INFORMATION_MESSAGE);
+    }
 }

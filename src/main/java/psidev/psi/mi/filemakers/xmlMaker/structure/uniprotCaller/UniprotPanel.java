@@ -2,11 +2,6 @@ package psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import psidev.psi.mi.filemakers.xsd.AbstractXsdTreeStruct;
-import psidev.psi.mi.filemakers.xsd.AbstractXsdTreePanel;
-import psidev.psi.mi.filemakers.xsd.MessageManagerInt;
-import psidev.psi.mi.filemakers.xsd.Utils;
-
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -22,8 +17,6 @@ public class UniprotPanel extends JPanel {
     private final JComboBox<String> columns = new JComboBox<>();
     FileReader fileReader = new FileReader();
     String selectedOrganism = null;
-    public AbstractXsdTreeStruct xsdTree;
-
 
     public UniprotPanel() {
         setLayout(new BorderLayout());
@@ -91,7 +84,6 @@ public class UniprotPanel extends JPanel {
             System.out.println("Processing file...");
             URL fileUrl = fileFetcher.getFileUrl();
             if (fileUrl != null) {
-//                xsdTree.getMessageManager().sendMessage("Processing file", MessageManagerInt.simpleMessage);
                 // Get the user input directly from the combo box
                 String selectedDisplayName = (String) suggestedOrganismsIds.getSelectedItem();
                 selectedOrganism = selectedDisplayName;
@@ -112,7 +104,7 @@ public class UniprotPanel extends JPanel {
                         columnSelected.equals("Select column to process")) {
                     JOptionPane.showMessageDialog(null, "Please select a valid sheet and column!", "ERROR", JOptionPane.ERROR_MESSAGE);
                 } else {
-                    fileReader.checkAndInsertUniprotResults(sheetSelected, organismId, columnSelected);
+                    fileReader.checkAndInsertUniprotResults(sheetSelected, organismId, columnSelected, fileUrl);
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "No file selected!", "ERROR", JOptionPane.ERROR_MESSAGE);

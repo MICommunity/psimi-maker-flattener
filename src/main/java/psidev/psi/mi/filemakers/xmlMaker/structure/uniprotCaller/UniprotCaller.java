@@ -4,9 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import psidev.psi.mi.filemakers.xsd.AbstractXsdTreeStruct;
-import psidev.psi.mi.filemakers.xsd.MessageManagerInt;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -14,50 +11,70 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class UniprotCaller {
 
     // https://rest.uniprot.org/uniprotkb/search?query=(xref:GeneID-945%20AND%20organism_id:9606)&format=json&fields=accession,xref_geneid,organism_id
     Map<String, String> alreadyParsed = new HashMap<>();
-    ArrayList<String> resultNotFound = new ArrayList<>();
-    public AbstractXsdTreeStruct xsdTree;
 
-    public String fetchUniprotResults(String protein, String organismId) {
+    private static final String ACCEPT_HEADER = "Accept"; // Constant for HTTP header
+    private static final String ACCEPT_JSON = "application/json"; // Constant for JSON accept header
+
+    public Optional<String> fetchUniprotResults(String protein, String organismId) {
         String urlString = uniprotQueryConstructor(protein, organismId);
         if (alreadyParsed.containsKey(protein)) {
-            return alreadyParsed.get(protein);
-        } else {
-            try {
-                URL uniprotURL = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) uniprotURL.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setRequestProperty("Accept", "application/json");
-
-                try (BufferedReader queryResults = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                    StringBuilder content = new StringBuilder();
-                    String inputLine;
-                    while ((inputLine = queryResults.readLine()) != null) {
-                        content.append(inputLine);
-                    }
-                    JsonElement parsedElement = JsonParser.parseString(content.toString());
-                    JsonObject jsonResponse = parsedElement.getAsJsonObject();
-                    String uniprotAccession = getUniprotAC(jsonResponse, protein);
-                    if (uniprotAccession != null) {
-                        alreadyParsed.put(protein, uniprotAccession);
-                        return uniprotAccession;
-                    } else {
-                        alreadyParsed.put(protein, " ");
-                        System.out.println("No Uniprot results found for: " + protein);
-                    }
-                }
-            } catch (Exception e) {
-                xsdTree.getMessageManager().sendMessage("no node selected", MessageManagerInt.errorMessage);
-                System.out.println("Error while fetching Uniprot results: " + e.getMessage());
-            }
+            return Optional.ofNullable(alreadyParsed.get(protein));
         }
-        return null;
+        try {
+            HttpURLConnection connection = createConnection(urlString);
+            return parseResponse(connection, protein);
+        } catch (Exception e) {
+            System.out.println("Error while fetching Uniprot results: " + e.getMessage());
+        }
+        return Optional.empty();
     }
-    public String getUniprotAC(JsonObject results, String protein) {
+
+    private HttpURLConnection createConnection(String urlString) throws Exception {
+
+        URL uniprotURL = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) uniprotURL.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty(ACCEPT_HEADER, ACCEPT_JSON);
+        return connection;
+    }
+
+    private Optional<String> parseResponse(HttpURLConnection connection, String protein) {
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader queryResults = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+            String inputLine;
+            while ((inputLine = queryResults.readLine()) != null) {
+                content.append(inputLine);
+            }
+            return extractUniprotAccession(content.toString(), protein);
+        } catch (Exception e) {
+            System.out.println("Protein not found: " + protein);
+        } finally {
+            connection.disconnect();
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> extractUniprotAccession(String jsonString, String protein) {
+        JsonElement parsedElement = JsonParser.parseString(jsonString);
+        JsonObject jsonResponse = parsedElement.getAsJsonObject();
+        String uniprotAccession = getUniprotAC(jsonResponse);
+        if (uniprotAccession != null) {
+            alreadyParsed.put(protein, uniprotAccession);
+            return Optional.of(uniprotAccession);
+        } else {
+            alreadyParsed.put(protein, " ");
+            System.out.println("No Uniprot results found for: " + protein);
+        }
+        return Optional.empty();
+    }
+
+    public String getUniprotAC(JsonObject results) {
         ArrayList<JsonObject> swissProtUniprotACs = new ArrayList<>();
         ArrayList<JsonObject> tremblUniprotACs = new ArrayList<>();
 
@@ -78,16 +95,6 @@ public class UniprotCaller {
                         default:
                             break;
                     }
-//                if (result.has("entryType")) {
-//                    String entryType = result.get("entryType").getAsString();
-//                    if (entryType.equals("UniProtKB reviewed (Swiss-Prot)")) {
-//                        swissProtUniprotACs.add(result);
-//                    } else if (entryType.equals("UniProtKB unreviewed (TrEMBL)")) {
-//                        tremblUniprotACs.add(result);
-//                    }
-//                    if (entryType.equals("Inactive") && result.get("primaryAccession").getAsString().equals(protein)) {
-//                        return result.get("inactiveReason").getAsJsonObject().get("mergeDemergeTo").getAsString();
-//                    }
                 }
             }
         }
