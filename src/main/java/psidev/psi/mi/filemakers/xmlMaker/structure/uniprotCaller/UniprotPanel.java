@@ -7,6 +7,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
+import psidev.psi.mi.filemakers.xmlMaker.structure.jamiXml.JamiXmlWriter;
 
 
 public class UniprotPanel extends JPanel {
@@ -83,6 +84,8 @@ public class UniprotPanel extends JPanel {
         processFile.addActionListener(e -> {
             System.out.println("Processing file...");
             URL fileUrl = fileFetcher.getFileUrl();
+            JamiXmlWriter jamiXmlWriter = new JamiXmlWriter();
+            jamiXmlWriter.readFlatFile("test");
             if (fileUrl != null) {
                 // Get the user input directly from the combo box
                 String selectedDisplayName = (String) suggestedOrganismsIds.getSelectedItem();

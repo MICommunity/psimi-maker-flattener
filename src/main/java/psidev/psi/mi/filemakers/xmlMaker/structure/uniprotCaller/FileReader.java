@@ -73,13 +73,10 @@ public class FileReader {
     private void writeWorkbookToFile(URL fileUrl) {
         try {
             File inputFile = Paths.get(fileUrl.toURI()).toFile();
-            String inputFileName = inputFile.getName().substring(0, inputFile.getName().lastIndexOf('.'));
-            String outputFileName = inputFile.getParent() + File.separator + inputFileName + "_updated.xls";
-
-            try (FileOutputStream fileOut = new FileOutputStream(outputFileName)) {
+            try (FileOutputStream fileOut = new FileOutputStream(inputFile)) {
                 workbook.write(fileOut);
-                showInfoDialog("New column inserted with UniProt accession numbers in " + outputFileName);
-                log.log(Level.INFO, "Successfully wrote updated file to {0}", outputFileName);
+                showInfoDialog("New column inserted with UniProt accession numbers in " + inputFile.getName());
+                log.log(Level.INFO, "Successfully wrote updated file to {0}", inputFile.getName());
             }
         } catch (Exception e) {
             showErrorDialog("Error writing Excel file");

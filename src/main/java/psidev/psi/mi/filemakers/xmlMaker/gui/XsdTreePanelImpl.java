@@ -427,7 +427,7 @@ public class XsdTreePanelImpl extends
 	}
 
 	/**
-	 * used to display in a new panel informations about the node selected
+	 * used to display in a new panel information about the node selected
 	 */
 	public class InfosListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -460,6 +460,8 @@ public class XsdTreePanelImpl extends
 	public class LoadSchemaListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			loadSchema();
+//			if (xsdTree.schema != null)
+//				((psidev.psi.mi.filemakers.xmlFlattener.structure.XsdTreeStructImpl) xsdTree).setXmlRoot();
 		}
 	}
 

@@ -127,8 +127,6 @@ public abstract class AbstractXsdTreePanel extends JPanel {
 	 * <code>emptySelectionLists</code> method
 	 */
 	public void loadSchema() {
-		// try {
-
 		String defaultDirectory = Utils.lastVisitedDirectory;
 		if (Utils.lastVisitedSchemaDirectory != null)
 			defaultDirectory = Utils.lastVisitedSchemaDirectory;

@@ -249,13 +249,15 @@ public abstract class AbstractXsdTreeStruct extends Observable {
 	 */
 	public void createTree() {
 		Enumeration<ElementDecl> elts = schema.getElementDecls();
-		ElementDecl elt = elts.nextElement();
-		XsdNode node = new XsdNode(elt);
-		/* rootNode is mandatory */
-		rootNode = node;
-		rootNode.use();
-		treeModel = new DefaultTreeModel(rootNode);
-		tree.setModel(treeModel);
+		while (elts.hasMoreElements()) {
+			ElementDecl elt = elts.nextElement();
+			XsdNode node = new XsdNode(elt);
+			/* rootNode is mandatory */
+			rootNode = node;
+			rootNode.use();
+			treeModel = new DefaultTreeModel(rootNode);
+			tree.setModel(treeModel);
+		}
 	}
 
 	/**
@@ -842,7 +844,7 @@ public abstract class AbstractXsdTreeStruct extends Observable {
 			/* position is important when adding new node */
 			// int position = parent.getIndex(node);
 			/*
-			 * if a sequence: add all childs, if a choice, ask user
+			 * if a sequence: add all children, if a choice, ask user
 			 */
 			if (g.getOrder().getType() == Order.CHOICE && manageChoices) {
 				XsdNode newNode;
@@ -860,14 +862,16 @@ public abstract class AbstractXsdTreeStruct extends Observable {
 					}
 				}
 
-				newNode = new XsdNode(choices.get(possibilities.indexOf(choice)));
+				System.out.println(possibilities.indexOf(choice));
+				newNode = new XsdNode(choices.get(possibilities.indexOf(choice) + 1));
+
 				newNode.isRequired = node.isRequired;
 
 				/**
 				 * If the max occurs is specified, transfer it to the child.
 				 */
 				/**
-				 * TODO: check if we should verify that max/min is indedd specified for the
+				 * TODO: check if we should verify that max/min is indeed specified for the
 				 * group.
 				 */
 

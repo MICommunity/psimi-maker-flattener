@@ -14,8 +14,7 @@
  */
 package psidev.psi.mi.filemakers.xmlMaker;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -30,22 +29,17 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JEditorPane;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+//import javax.xml.bind.JAXBContext;
+//import javax.xml.bind.JAXBException;
+//import javax.xml.bind.Marshaller;
+//import javax.xml.bind.Unmarshaller;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Marshaller;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -234,6 +228,7 @@ public class XmlMakerGui extends JFrame {
 			JOptionPane.showMessageDialog(new JFrame(), "IO error, unable to load mapping",
 					"[PSI makers: PSI maker] load mapping", JOptionPane.ERROR_MESSAGE);
 		} catch (JAXBException jbe) {
+			System.err.println(jbe.getMessage());
 			System.out.println("Not a JAXB file, try with old format");
 			loadOldFormat(mappingFile);
 		}
@@ -251,6 +246,7 @@ public class XmlMakerGui extends JFrame {
 
 			/* get mapping */
 			Mapping mapping = (Mapping) xdec.readObject();
+
 
 			load(mapping);
 
@@ -436,12 +432,9 @@ public class XmlMakerGui extends JFrame {
 		uniprotPanel.setBorder(new TitledBorder("Uniprot Acs"));
 
 		Box associationsPanels = new Box(BoxLayout.Y_AXIS);
-
 		associationsPanels.add(flatFileTabbedPanel);
-
 		associationsPanels.add(dictionnaryLists);
 		getContentPane().add(associationsPanels, BorderLayout.WEST);
-
 		associationsPanels.add(uniprotPanel);
 
 		getContentPane().add(treePanel, BorderLayout.CENTER);
@@ -459,6 +452,9 @@ public class XmlMakerGui extends JFrame {
 		if (mappingFileName != null) {
 			load(new File(mappingFileName));
 		}
+////		if (mappingFileName != null) {
+//			load(new File("BioPlex3.0_mapping_v2.xml"));
+////		}
 
 	}
 
@@ -579,7 +575,6 @@ public class XmlMakerGui extends JFrame {
 		flatFileTabbedPanel.flatFileContainer.flatFiles.add(new FlatFile());
 		treePanel.flatFileTabbedPanel.reload();
 
-		/* dictionaries */
 		dictionnaryLists.dictionaries.dictionaries = new ArrayList<Dictionary>();
 		treePanel.dictionaryPanel.reload();
 
@@ -596,10 +591,8 @@ public class XmlMakerGui extends JFrame {
 		treePanel.setDictionnaryPanel(dictionnaryLists);
 		treePanel.setUniprotPanel(uniprotPanel);
 
-
 		treePanel.xsdTree.treeModel.reload();
 		treePanel.xsdTree.emptySelectionLists();
 		treePanel.reload();
 	}
-
 }

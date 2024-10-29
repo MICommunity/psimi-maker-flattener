@@ -17,8 +17,11 @@ package psidev.psi.mi.filemakers.xmlFlattener.mapping;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
+//import javax.xml.bind.annotation.XmlRootElement;
+//import javax.xml.bind.annotation.XmlTransient;
+
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 
 /**
  * 

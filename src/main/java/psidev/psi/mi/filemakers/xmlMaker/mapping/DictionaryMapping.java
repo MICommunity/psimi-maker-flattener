@@ -14,7 +14,8 @@
  */
 package psidev.psi.mi.filemakers.xmlMaker.mapping;
 
-import javax.xml.bind.annotation.XmlTransient;
+//import javax.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.XmlTransient;
 
 /**
  * 

@@ -52,8 +52,7 @@ public class UniprotCaller {
                 content.append(inputLine);
             }
             return extractUniprotAccession(content.toString(), protein);
-        } catch (Exception e) {
-            System.out.println("Protein not found: " + protein);
+        } catch (Exception ignored) {
         } finally {
             connection.disconnect();
         }
@@ -69,7 +68,6 @@ public class UniprotCaller {
             return Optional.of(uniprotAccession);
         } else {
             alreadyParsed.put(protein, " ");
-            System.out.println("No Uniprot results found for: " + protein);
         }
         return Optional.empty();
     }
