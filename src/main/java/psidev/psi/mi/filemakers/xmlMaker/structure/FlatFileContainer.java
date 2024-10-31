@@ -15,9 +15,7 @@
 package psidev.psi.mi.filemakers.xmlMaker.structure;
 
 import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
 import java.util.ArrayList;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -29,15 +27,14 @@ import org.apache.commons.logging.LogFactory;
  */
 public class FlatFileContainer {
 	 
-	private static final Log log = LogFactory
-     .getLog(FlatFileContainer.class);
+	private static final Log log = LogFactory.getLog(FlatFileContainer.class);
 	
-	public ArrayList<FlatFile> flatFiles = new ArrayList<FlatFile>();
+	public ArrayList<FlatFile> flatFiles = new ArrayList<>();
 
-	public String id = "just 4 testin";
+	public String id = "Testing";
 
 	public FlatFile getFlatFile(int index) {
-		return (FlatFile) flatFiles.get(index);
+		return flatFiles.get(index);
 	}
 
 	public void addFlatFile(FlatFile f) {
@@ -48,19 +45,13 @@ public class FlatFileContainer {
 		if (modelPath == null)
 			modelPath = path;
 		int tabNum = Integer.parseInt(path.substring(0, path.indexOf(".")));
-		return ((FlatFile) flatFiles.get(tabNum)).getElementAt(path
-				.substring(path.indexOf(".") + 1), modelPath.substring(path
-				.indexOf(".") + 1));
+		return (flatFiles.get(tabNum)).getElementAt(path.substring(path.indexOf(".") + 1),
+				modelPath.substring(path.indexOf(".") + 1));
 	}
 
 	public String getSeparator(String path) {
 		int tabNum = Integer.parseInt(path.substring(0, path.indexOf(".")));
-		return ((FlatFile) flatFiles.get(tabNum)).getSeparator(path
-				.substring(path.indexOf(".") + 1));
-	}
-
-	public void save(XMLEncoder oos) {
-		oos.writeObject(flatFiles);
+		return (flatFiles.get(tabNum)).getSeparator(path.substring(path.indexOf(".") + 1));
 	}
 
 	public void load(XMLDecoder ois) {
@@ -102,9 +93,8 @@ public class FlatFileContainer {
 		try {
 			return (getValue(path, null).split(getSeparator(path))).length;
 		} catch (Exception e) {
-			log.info("separator not yet defined");
+			log.info("Separator not yet defined");
 			return 1;
 		}
 	}
-
 }

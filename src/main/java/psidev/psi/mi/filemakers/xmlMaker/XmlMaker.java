@@ -21,15 +21,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-
-//import javax.xml.bind.JAXBContext;
-//import javax.xml.bind.JAXBException;
-//import javax.xml.bind.Unmarshaller;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
-
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -39,7 +33,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import psidev.psi.mi.filemakers.xmlMaker.mapping.DictionaryMapping;
 import psidev.psi.mi.filemakers.xmlMaker.mapping.FlatFileMapping;
 import psidev.psi.mi.filemakers.xmlMaker.mapping.Mapping;
@@ -54,11 +47,9 @@ import psidev.psi.mi.filemakers.xsd.Utils;
 /**
  *
  * Executable class for the maker, without graphical user interface
- *
  * Main class for the maker: load an XML schema as a tree, load the flat files,
  * the dictionaries get selected nodes from the mapping file and write an XML
  * document.
- *
  * Available parameters: -mapping: the mapping file, created by the GUI
  * application -o: name of the XML document to write -log: name of the log file
  * -flatfiles: names of the flat files in the right order, separated by comma
@@ -81,7 +72,7 @@ public class XmlMaker {
 
     private static void displayUsage(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             formatter.printHelp("bin/xmlmaker.bat ",
                     options);
         } else {
@@ -92,17 +83,17 @@ public class XmlMaker {
 
     public void load(Mapping mapping) throws MalformedURLException,
             FileMakersException {
-        xsdTree.flatFiles.flatFiles = new ArrayList<FlatFile>();
+        xsdTree.flatFiles.flatFiles = new ArrayList<>();
 
         /* flat files */
         for (int i = 0; i < mapping.getFlatFiles().size(); i++) {
             if (mapping.getFlatFiles().get(i) == null) {
                 continue;
             }
-            FlatFileMapping ffm = (FlatFileMapping) mapping.getFlatFiles().get(i);
+            FlatFileMapping ffm = mapping.getFlatFiles().get(i);
             FlatFile f = new FlatFile();
             f.lineSeparator = ffm.getLineSeparator();
-            f.firstLineForTitles = ffm.isFisrtLineForTitle();
+            f.firstLineForTitles = ffm.isFirstLineForTitle();
             f.setSeparators(ffm.getSeparators());
             try {
                 URL url = Utils.absolutizeURL(ffm.getFileURL());
@@ -117,11 +108,10 @@ public class XmlMaker {
         }
 
         /* dictionaries */
-        xsdTree.dictionaries.dictionaries = new ArrayList<Dictionary>();
+        xsdTree.dictionaries.dictionaries = new ArrayList<>();
 
         for (int i = 0; i < mapping.getDictionaries().size(); i++) {
-            DictionaryMapping dm = (DictionaryMapping) mapping.getDictionaries()
-                    .get(i);
+            DictionaryMapping dm = mapping.getDictionaries().get(i);
             try {
                 URL url = Utils.absolutizeURL(dm.getFileURL());
                 Dictionary d1 = new Dictionary(url, dm.getSeparator(),
@@ -142,14 +132,12 @@ public class XmlMaker {
         try {
             xsdTree.loadSchema(treeMapping.getSchemaURL());
         } catch (IOException ioe) {
-//			ioe.printStackTrace();
-
             log.error("ERROR: unable to load schema "
                     + treeMapping.getSchemaURL(), ioe);
             throw new FileMakersException("unable to load schema "
                     + treeMapping.getSchemaURL());
         }
-        ((XsdTreeStructImpl) xsdTree).loadMapping(treeMapping);
+        xsdTree.loadMapping(treeMapping);
         xsdTree.check();
     }
 
@@ -248,7 +236,7 @@ public class XmlMaker {
         if (flatFiles != null) {
             String[] files = flatFiles.replaceAll("'", "").split(",");
             for (int j = 0; j < files.length; j++) {
-                ((FlatFileMapping) mapping.getFlatFiles().get(j)).setFileURL(files[j]);
+                mapping.getFlatFiles().get(j).setFileURL(files[j]);
                 log.info("flat file " + j + ": " + files[j]);
             }
         }
@@ -256,7 +244,7 @@ public class XmlMaker {
         if (dictionaries != null) {
             String[] files = dictionaries.replaceAll("'", "").split(",");
             for (int j = 0; j < files.length; j++) {
-                ((DictionaryMapping) mapping.getDictionaries().get(j))
+                mapping.getDictionaries().get(j)
                         .setFileURL(files[j]);
                 log.info("dictionary " + j + ": " + files[j]);
             }
@@ -273,7 +261,7 @@ public class XmlMaker {
             return;
         }
 
-        f.xsdTree.print2(new File(xmlFile));
+        f.xsdTree.createXml(new File(xmlFile));
         log.debug("done");
 
     }

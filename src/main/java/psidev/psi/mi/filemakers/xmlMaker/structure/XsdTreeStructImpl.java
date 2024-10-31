@@ -55,9 +55,7 @@ import psidev.psi.mi.filemakers.xsd.XsdNode;
 public class XsdTreeStructImpl extends
 		psidev.psi.mi.filemakers.xsd.AbstractXsdTreeStruct {
 	 	
-	private static final Log log = LogFactory
-	            .getLog(XsdTreeStructImpl.class);
-	
+	private static final Log log = LogFactory.getLog(XsdTreeStructImpl.class);
 	/** keep the number of the line currently parsed */
 	private int lineNumber = 0;
 	
@@ -92,7 +90,7 @@ public class XsdTreeStructImpl extends
 	public String name = "";
 
 	/**
-	 * id for autogeneration: type MINT-001
+	 * id for auto-generation: type MINT-001
 	 */
 	public String id = "";
 
@@ -124,7 +122,7 @@ public class XsdTreeStructImpl extends
 	public HashMap<XsdNode, String> associatedValues = new HashMap<>();
 
 	/**
-	 * associate a list dictionnary value to a node. The original value will be
+	 * associate a list dictionary value to a node. The original value will be
 	 * kept for this node if the value is not found in the dictionary.
 	 * 
 	 * @uml.property name="associatedDictionary"
@@ -132,7 +130,7 @@ public class XsdTreeStructImpl extends
 	public HashMap<XsdNode, Integer> associatedOpenDictionary = new HashMap<>();
 
 	/**
-	 * associate a list dictionnary value to a node. No value will be returned
+	 * associate a list dictionary value to a node. No value will be returned
 	 * for this node if the value is not found in the dictionary.
 	 * 
 	 * @uml.property name="associatedDictionary"
@@ -141,7 +139,7 @@ public class XsdTreeStructImpl extends
 
 	/**
 	 * associate the index of the column containing the replacement value (i.e.
-	 * the postition of the definition on a line.) in the dictionnary associated
+	 * the position of the definition on a line.) in the dictionary associated
 	 * to a node.
 	 * 
 	 * @uml.property name="associatedDictionaryColumn"
@@ -149,9 +147,9 @@ public class XsdTreeStructImpl extends
 	public HashMap<XsdNode, Integer> associatedDictionaryColumn = new HashMap<>();
 
 	/**
-	 * list of the nodes for wich the value has to be generated
+	 * list of the nodes for which the value has to be generated
 	 * 
-	 * @uml.property name="associatedAutogeneration"
+	 * @uml.property name="associatedAuto-generation"
 	 */
 	public ArrayList<XsdNode> associatedAutogeneration = new ArrayList<>();
 
@@ -171,7 +169,7 @@ public class XsdTreeStructImpl extends
 	}
 
 	/**
-	 * create a new instance of XslTree The nodes will be automaticaly
+	 * create a new instance of XslTree The nodes will be automatically
 	 * duplicated if the schema specify that more than one element of this type
 	 * are mandatory
 	 */
@@ -181,11 +179,11 @@ public class XsdTreeStructImpl extends
 	}
 
 	/**
-	 * this method should reinitialize every variable makin reference to the
+	 * this method should reinitialize every variable making reference to the
 	 * actual tree, such as any <code>List</code> used to make associations to
 	 * externals objects.
 	 * reinitialized associations of nodes with columns, default values,
-	 * dictionaries, autogeneration of value and associations to flat files
+	 * dictionaries, auto-generation of value and associations to flat files
 	 */
 	public void emptySelectionLists() {
 		associatedFields = new HashMap<>();
@@ -212,15 +210,6 @@ public class XsdTreeStructImpl extends
 		flatFilesStack.remove(flatFilesStack.size() - 1);
 	}
 
-	/**
-	 * Check if the node has a root node for ancestor. It is usefull when
-	 * associating a node to a flat file as two root nodes (nodes associated to
-	 * a flat file) should not have children in common
-	 * 
-	 * @param node
-	 * @return
-//	 */
-
     /**
 	 * associate the node selected to the FlatFile selected in the associated
 	 * FlatFileTabbedPanel.
@@ -240,9 +229,9 @@ public class XsdTreeStructImpl extends
 
 		previousAssociation = associatedFlatFiles.get(flatFile);
 
-		int previousFlatfileAssociated = associatedFlatFiles.indexOf(node);
-		if (previousFlatfileAssociated > -1)
-			associatedFlatFiles.set(previousFlatfileAssociated, null);
+		int previousFlatFileAssociated = associatedFlatFiles.indexOf(node);
+		if (previousFlatFileAssociated > -1)
+			associatedFlatFiles.set(previousFlatFileAssociated, null);
 
 		check((XsdNode) treeModel.getRoot());
 		if (previousAssociation != null)
@@ -265,12 +254,12 @@ public class XsdTreeStructImpl extends
 	}
 
 	/**
-	 * associate a dictionnary to the node selected. Each time a value will be
+	 * associate a dictionary to the node selected. Each time a value will be
 	 * requested for this node, it will be changed for its replacement value in
 	 * target list if it exists
 	 */
-	public void associateDictionnary(XsdNode node, int dictionary, int column,
-			boolean closedAssociation) {
+	public void associateDictionary(XsdNode node, int dictionary, int column,
+									boolean closedAssociation) {
 		associatedClosedDictionary.remove(node);
 		associatedOpenDictionary.remove(node);
 		if (closedAssociation)
@@ -307,9 +296,9 @@ public class XsdTreeStructImpl extends
 	}
 
 	/**
-	 * removes the association of the node selected with a dictionnary
+	 * removes the association of the node selected with a dictionary
 	 */
-	public void cancelAssociateDictionnary(XsdNode node) {
+	public void cancelAssociateDictionary(XsdNode node) {
 		associatedClosedDictionary.remove(node);
 		associatedOpenDictionary.remove(node);
 		associatedDictionaryColumn.remove(node);
@@ -322,7 +311,7 @@ public class XsdTreeStructImpl extends
 		if (!associatedFields.containsKey(node))
 			return;
 		associatedFields.remove(node);
-		node.unuse();
+		node.unused();
 		check((XsdNode) treeModel.getRoot());
 		treeModel.reload(node);
 	}
@@ -353,7 +342,7 @@ public class XsdTreeStructImpl extends
 		if (!associatedValues.containsKey(node))
 			return;
 		associatedValues.remove(node);
-		node.unuseOnlyThis();
+		node.unusedOnlyThis();
 		check((XsdNode) treeModel.getRoot());
 		treeModel.reload(node);
 	}
@@ -380,13 +369,6 @@ public class XsdTreeStructImpl extends
 		return associatedFields.containsKey(node);
 	}
 
-	/**
-	 * check if target nod eis mapped to anything.
-	 * 
-	 * @param node
-	 * @return
-	 */
-
     /**
 	 * get the value for a node
 	 * 
@@ -394,8 +376,8 @@ public class XsdTreeStructImpl extends
 	 *            a node
 	 * @return the value in the field associated to this node if the association
 	 *         exists (eventually replaced by a replacement value in a
-	 *         dictionnary), if not a automaticaly generated value if the node
-	 *         has been setted to request one, if not the default value if one
+	 *         dictionary), if not an automatically generated value if the node
+	 *         has been set to request one, if not the default value if one
 	 *         has been associated to the node. Else return null
 	 */
 	public String getValue(XsdNode node) {
@@ -407,7 +389,7 @@ public class XsdTreeStructImpl extends
 			if (pathFilter != null && !unduplicableNodes.contains(node)) {
 				String[] filters = pathFilter.split("\\.");
 				String[] paths = path.split("\\.");
-				String filteredPath = "";
+				StringBuilder filteredPath = new StringBuilder();
 				for (int i = 0; i < filters.length; i++) {
 					try {
 					paths[i] = String.valueOf(Integer.parseInt(filters[i])
@@ -417,10 +399,10 @@ public class XsdTreeStructImpl extends
 					}
 				}
 				for (int i = 0; i < paths.length - 1; i++) {
-					filteredPath += paths[i] + ".";
+					filteredPath.append(paths[i]).append(".");
 				}
-				filteredPath += paths[paths.length - 1];
-				path = filteredPath;
+				filteredPath.append(paths[paths.length - 1]);
+				path = filteredPath.toString();
 			}
 			String value = flatFiles.getValue(path, modelPath);
 			if (value == null) {
@@ -483,7 +465,7 @@ public class XsdTreeStructImpl extends
 	}
 
 	/**
-	 * get informations about the node in an understandable String
+	 * get information about the node in an understandable String
 	 */
 	public String getInfos(XsdNode node) {
 		if (node == null)
@@ -501,7 +483,7 @@ public class XsdTreeStructImpl extends
 		String duplicableField = associatedDuplicableFields.get(node);
 
 		if (duplicableField != null) {
-			infos += "this node will be automaticaly duplicated: "
+			infos += "this node will be automatically duplicated: "
 					+ "\nfile: "
 					+ Utils
 							.relativizeURL(
@@ -534,21 +516,21 @@ public class XsdTreeStructImpl extends
 		if (hasDefaultValue(node)) {
 			infos += "associated value: " + associatedValues.get(node) + "\n";
 		}
-		// dictionnary
+		// dictionary
 		if (associatedOpenDictionary.containsKey(node)) {
-			infos += "find replacement value in dictionnary: "
+			infos += "find replacement value in dictionary: "
 					+ dictionaries.getName(associatedOpenDictionary.get(node))
-					+ " or keep orginal value.\n";
+					+ " or keep original value.\n";
 		}
-		// dictionnary
+		// dictionary
 		if (associatedClosedDictionary.containsKey(node)) {
-			infos += "find replacement value in dictionnary: "
+			infos += "find replacement value in dictionary: "
 					+ dictionaries
 							.getName(associatedClosedDictionary
                                     .get(node)) + "\n";
 		}
 		if (associatedAutogeneration.contains(node)) {
-			infos += "A value will be automaticaly generated for this node.";
+			infos += "A value will be automatically generated for this node.";
 		}
 
 		if (associatedFlatFiles.contains(node)) {
@@ -569,7 +551,7 @@ public class XsdTreeStructImpl extends
 
 	public boolean checkAttribute(XsdNode node) {
 		if (node.isRequired 
-				/** TODO: check if it works, 2006-05-25 */ 
+				/* TODO: check if it works, 2006-05-25 */
 				&& !isAffected(node) && !hasDefaultValue(node)
 				&& !associatedAutogeneration.contains(node))
 				{
@@ -654,7 +636,7 @@ public class XsdTreeStructImpl extends
 	
 		
 		boolean errors = false;
-		/* check if number of subelts is correct */
+		/* check if number of sublets is correct */
 		HashMap<String, Object> maxOccurs = new HashMap<>();
 		HashMap<String, Integer> minOccurs = new HashMap<>();
 
@@ -663,19 +645,17 @@ public class XsdTreeStructImpl extends
 			XsdNode child = (XsdNode) children.nextElement();
 			int nbDuplications = 1;
 			String previousFilter = pathFilter;
-			String filter = "";
+			StringBuilder filter = new StringBuilder();
 
 			if (associatedDuplicableFields.containsKey(child)) {
 				nbDuplications = flatFiles
 						.nbElements(associatedDuplicableFields
 								.get(child));
 
-				for (int i = 0; i < associatedDuplicableFields
-						.get(child).split("\\.").length; i++) {
-					filter += "0.";
-				}
-				filter += "0";
-				pathFilter = filter;
+                filter.append("0.".repeat(associatedDuplicableFields
+                        .get(child).split("\\.").length));
+				filter.append("0");
+				pathFilter = filter.toString();
 			}
 
 			for (int i = 0; i < nbDuplications; i++) {
@@ -703,7 +683,7 @@ public class XsdTreeStructImpl extends
 					}
 					break;
 				case Structure.ELEMENT:
-					/* initialisation if first occurence of the element */
+					/* initialisation if first occurrence of the element */
 					if (!maxOccurs.containsKey(child.toString())) {
 						int max = child.max;
 						if (max != -1) {
@@ -741,12 +721,12 @@ public class XsdTreeStructImpl extends
 		while (names.hasNext()) {
 			names.next();
 			// if a min is > 0, it means that an element is missing
-			/////////////////////// dat one
+			/////////////////////// this one
 			if (mins.next() > 0) {
 				errors = true;
 			}
 
-			/* if a max is < 0, it means there are too much elements */
+			/* if a max is < 0, it means there are too many elements */
 			try {
 				if ((Integer) maxs.next() < 0) {
 					errors = true;
@@ -784,28 +764,13 @@ public class XsdTreeStructImpl extends
 		return "</" + node.toString() + ">";
 	}
 
-	/**
-	 * write the XML code to close the element
-	 * 
-	 * @param node
-	 *            a node
-	 * @param isEmptyElement
-	 *            if the node does not have neither attribute nor value or sub
-	 *            elements
-	 * @param out
-	 *            the writer used to write the code
-	 */
-
     /**
-	 * check if these are enough associations according to the shema
-	 *
+	 * check if these are enough associations according to the schema
 	 * condition for being "checkedOK": attributes: if is associated to a value
 	 * or not required simpleType elements: if is associated to a value element,
 	 * complex type: if all sub Elements are checkedOk group: if the count of
 	 * subElements "checkedOk" is good
-	 *
 	 * condition for errors: elements or group is not "checkedOk"
-	 *
 	 */
 	public boolean check(XsdNode node) {
 		switch (((Annotated) node.getUserObject()).getStructureType()) {
@@ -847,26 +812,26 @@ public class XsdTreeStructImpl extends
 	public String openElement(XsdNode node, ArrayList<String> attributes,
 			boolean isEmptyElement) {
 		
-		String attributesString = "";
+		StringBuilder attributesString = new StringBuilder();
 		Iterator<String> it = attributes.iterator();
 		while (it.hasNext()) {
 			String attributeName = it.next();
 			String attributeValue = it.next();
 			if (!attributeValue.isEmpty())
-				attributesString += " " +attributeName+"=\""+attributeValue+"\"";
+				attributesString.append(" ").append(attributeName).append("=\"").append(attributeValue).append("\"");
 		}
 		
 		
 		// if root node :
 		if (node == treeModel.getRoot()) {
-			attributesString += " xsi:schemaLocation=\""+schema.getTargetNamespace()+" "+schemaURL+"\"";
-			attributesString += " xmlns=\""+schema.getTargetNamespace()+"\"";
-			attributesString += " xmlns:xsi=\""+schema.getSchemaNamespace()+"\"";
+			attributesString.append(" xsi:schemaLocation=\"").append(schema.getTargetNamespace()).append(" ").append(schemaURL).append("\"");
+			attributesString.append(" xmlns=\"").append(schema.getTargetNamespace()).append("\"");
+			attributesString.append(" xmlns:xsi=\"").append(schema.getSchemaNamespace()).append("\"");
 		}
 		
-		attributesString = attributesString.trim();
-		if (!attributesString.isEmpty())
-			attributesString = " " + attributesString;
+		attributesString = new StringBuilder(attributesString.toString().trim());
+		if (attributesString.length() > 0)
+			attributesString.insert(0, " ");
 		else if (isEmptyElement)
 			return null;
 		if (isEmptyElement)
@@ -887,12 +852,11 @@ public class XsdTreeStructImpl extends
 	}
 
 	public String previewElement(XsdNode node) {
-
 		if (!node.isUsed())
 			return null;
 
-		String attributes = "";
-		String elements = "";
+		StringBuilder attributes = new StringBuilder();
+		StringBuilder elements = new StringBuilder();
 		String value;
 		/*
 		 * get every child of the node get the structureType of the userElement
@@ -905,47 +869,46 @@ public class XsdTreeStructImpl extends
 			case Structure.ATTRIBUTE:
 				String attribute = previewAttribute(child);
 				if (attribute != null)
-					attributes += attribute;
+					attributes.append(attribute);
 				break;
 			case Structure.ELEMENT:
 				String element = previewElement(child);
 				if (element != null)
-					elements += element;
+					elements.append(element);
 				break;
 			case Structure.GROUP:
 				String group;
 				group = previewGroup(child);
 				if (group != null)
-					elements += group;
+					elements.append(group);
 				break;
 			}
 		} /* get the value affected to this element */
 		value = getValue(node);
 
-		boolean isEmptyElement = ((value == null || value.isEmpty()) && elements.isEmpty());
+		boolean isEmptyElement = ((value == null || value.isEmpty()) && (elements.length() == 0));
 		
-		if (!elements.isEmpty())
-			elements = elements + "\n";
-		if (!attributes.isEmpty() && isEmptyElement)
+		if (elements.length() > 0)
+			elements.append("\n");
+		if ((attributes.length() > 0) && isEmptyElement)
 			return null;
 
 		if (value == null)
 			value = "";
 
-		return openElement(node, attributes, isEmptyElement) + value + elements
+		return openElement(node, attributes.toString(), isEmptyElement) + value + elements
 				+ closeElement(node, isEmptyElement);
 	}
 
 	public String previewGroup(XsdNode node) {
-
-		String group = "";
+		StringBuilder group = new StringBuilder();
 		Enumeration<TreeNode> elements = node.children();
 		while (elements.hasMoreElements()) {
 			String element = previewNode((XsdNode) elements.nextElement());
 			if (element != null)
-				group += element;
+				group.append(element);
 		}
-		return group;
+		return group.toString();
 	}
 
 	public String previewNode(XsdNode node) {
@@ -957,7 +920,7 @@ public class XsdTreeStructImpl extends
 		case Structure.ELEMENT:
 			return previewElement(node);
 		default:
-			return "<error: unmanaged elementt/>";
+			return "<error: unmanaged element/>";
 		}
 	}
 
@@ -974,9 +937,7 @@ public class XsdTreeStructImpl extends
 	public void associateAutoGenerateValue(XsdNode node) {
 		cancelAllAssociations(node);
 		associatedAutogeneration.add(node);
-
 		name = node.toString();
-
 		node.useOnlyThis();
 		check((XsdNode) treeModel.getRoot());
 		treeModel.reload(node);
@@ -985,9 +946,8 @@ public class XsdTreeStructImpl extends
 	public void cancelAutogenerate(XsdNode node) {
 		if (!associatedAutogeneration.contains(node))
 			return;
-
 		associatedAutogeneration.remove(node);
-		node.unuseOnlyThis();
+		node.unusedOnlyThis();
 		check((XsdNode) treeModel.getRoot());
 		treeModel.reload(node);
 	}
@@ -1113,12 +1073,11 @@ public class XsdTreeStructImpl extends
             XsdNode node = getNodeByPath(path);
 			if (null == node) {
 				// try again
-				/**
-				 * TODO: this has been done because 
-				 * an exception was raised on the first attempt.
+				/*
+				 * TODO: this has been done because an exception was raised on the first attempt.
 				 * We should find out why and fix it.
 				 */
-				log.error("try again: " + node);
+				log.error("try again");
 				node = getNodeByPath(path);
 			}
 			
@@ -1249,16 +1208,6 @@ public class XsdTreeStructImpl extends
 	}
 
 	/**
-	 * @param lastId
-	 *            The lastId to set.
-	 * 
-	 * @uml.property name="lastId"
-	 */
-	public void setLastId(int lastId) {
-		this.lastId = lastId;
-	}
-
-	/**
 	 * @return Returns the name.
 	 * 
 	 * @uml.property name="name"
@@ -1285,82 +1234,74 @@ public class XsdTreeStructImpl extends
 		super.expendChoices = expendChoices;
 	}
 
-	/**
-	 * @return Returns the expendChoices.
-	 */
-	public ArrayList<String> getExpandChoices() {
-		return super.expendChoices;
-	}
-
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	public void print2(File outFile) throws IOException {
-		Writer out = new BufferedWriter(new FileWriter(outFile));
+	public void createXml(File outFile) throws IOException {
+		Writer bufferedWriter = new BufferedWriter(new FileWriter(outFile));
 
+		// Set initial message and notify listeners
 		observable.setMessage("output file: " + outFile.getName());
-		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		out
-				.write("<!-- created using XmlMakerFlattener v2 (http://code.google.com/p/xmlmakerflattener/) -->");
-		getMessageManager().sendMessage("start marshalling to file :"
-				+ outFile.getName() + " at " + new Date() , MessageManagerInt.simpleMessage);
+
+		bufferedWriter.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+		bufferedWriter.write("<!-- created using XmlMakerFlattener v2 (http://code.google.com/p/xmlmakerflattener/) -->");
+
+		getMessageManager().sendMessage("start marshalling to file: " + outFile.getName() + " at " + new Date(),
+				MessageManagerInt.simpleMessage);
 
 		try {
-			out.write(xmlMake());
+			bufferedWriter.write(xmlMakeOneNode());
 		} catch (FileMakersException fme) {
 			getMessageManager().sendMessage("Exception in main loop: " + fme, MessageManagerInt.errorMessage);
-			/* TODO : manage exception */
-		} catch (java.lang.NullPointerException npe) {
+			// Additional exception handling if necessary
+		} catch (NullPointerException npe) {
 			getMessageManager().sendMessage("marshalling failed", MessageManagerInt.errorMessage);
 		}
-		
-		getMessageManager().sendMessage("marshalling done, finished at " + new Date()
-				, MessageManagerInt.simpleMessage);
 
-		out.flush();
-		out.close();
+		getMessageManager().sendMessage("marshalling done, finished at " + new Date(),
+				MessageManagerInt.simpleMessage);
 
+		bufferedWriter.flush();
+		bufferedWriter.close();
+
+		// Notify listeners that marshalling is complete
 		observable.setMessage("marshalling done");
-		observable.notifyObservers(observable.getMessage());
-		observable.deleteObservers();
+		// No need for deleteObservers() - listeners can be removed individually if needed
 	}
+
 
 	/**
 	 * write the whole XML file
 	 *
      */
-	public String xmlMake() throws IOException, FileMakersException {
-		return xmlMake((XsdNode) treeModel.getRoot());
+	public String xmlMakeOneNode() throws IOException, FileMakersException {
+		return xmlMakeOneNode((XsdNode) treeModel.getRoot());
 	}
 
 	/**
 	 * write the XML code for a node
 	 *  
 	 */
-	public String xmlMake(XsdNode node) throws IOException, FileMakersException {
-		lastId = 0;		
+	public String xmlMakeOneNode(XsdNode node) throws IOException, FileMakersException {
+		lastId = 0;
 		return xmlMakeElement(node);	
 	}
 
-
-	public String xmlMakeElement(XsdNode node) throws IOException,
-			FileMakersException {
-		
+	public String xmlMakeElement(XsdNode node) throws IOException, FileMakersException {
 		if (!node.isUsed()) {
 			return "";
 		}
 		
-		String xmlCode = "";
-
+		StringBuilder xmlCode = new StringBuilder();
 		Iterator<XsdNode> children = getChildren(node);
-
 		ArrayList<XsdNode> attributeList = new ArrayList<>();
 		ArrayList<XsdNode> elementList = new ArrayList<>();
 		ArrayList<XsdNode> groupList = new ArrayList<>();
 
 		/*
-		 * get every childs of the node get the structureType of the userElement
-		 * and use the apropriate marshaller
+		 * get every child of the node get the structureType of the userElement
+		 * and use the appropriate marshaller
 		 */
+
 		while (children.hasNext()) {
 			XsdNode child = children.next();
 			switch (((Annotated) child.getUserObject()).getStructureType()) {
@@ -1386,7 +1327,7 @@ public class XsdTreeStructImpl extends
 		HashMap<String, Integer> minOccurs = new HashMap<>();
 
         for (XsdNode child : elementList) {
-            /* initialisation if first occurence of the element */
+            /* initialisation if first occurrence of the element */
             /* TODO: check if it works for duplicated nodes... */
             if (!maxOccurs.containsKey(child.toString())) {
                 if (child.max != -1) {
@@ -1398,7 +1339,7 @@ public class XsdTreeStructImpl extends
             }
 
             if (associatedDuplicableFields.get(child) != null) {
-                /* marshall all subelemets */
+                /* marshall all sub-elements */
                 /* make filter */
                 /* how many sub elements */
 
@@ -1406,31 +1347,30 @@ public class XsdTreeStructImpl extends
                 if (pathFilter != null && !unduplicableNodes.contains(node)) {
                     String[] filters = pathFilter.split("\\.");
                     String[] paths = tmpPath.split("\\.");
-                    String filteredPath = "";
+                    StringBuilder filteredPath = new StringBuilder();
                     for (int j = 0; j < filters.length; j++) {
-                        paths[j] = String.valueOf(Integer.parseInt(filters[j])
-                                + Integer.parseInt(paths[j]));
+                        paths[j] = String.valueOf(Integer.parseInt(filters[j]) + Integer.parseInt(paths[j]));
                     }
                     for (int j = 0; j < paths.length - 1; j++) {
-                        filteredPath += paths[j] + ".";
+                        filteredPath.append(paths[j]).append(".");
                     }
-                    filteredPath += paths[paths.length - 1];
-                    tmpPath = filteredPath;
+                    filteredPath.append(paths[paths.length - 1]);
+                    tmpPath = filteredPath.toString();
                 }
                 int nbDuplications = flatFiles.nbElements(tmpPath);
 
                 String previousFilter = pathFilter;
                 /* do not forget to apply previous filter to the new one!!! */
-                String filter = "";
+                StringBuilder filter = new StringBuilder();
 
                 for (int j = 0; j < (associatedDuplicableFields.get(child)).split("\\.").length; j++) {
                     if (previousFilter != null && previousFilter.split("\\.").length > j)
-                        filter += previousFilter.split("\\.")[j] + ".";
+                        filter.append(previousFilter.split("\\.")[j]).append(".");
                     else
-                        filter += "0.";
+                        filter.append("0.");
                 }
 
-                filter += "0";
+                filter.append("0");
                 for (int j = 0; j < nbDuplications; j++) {
                     int lastFilterIdx = Integer.parseInt(filter.substring(filter
                             .lastIndexOf(".") + 1))
@@ -1451,7 +1391,7 @@ public class XsdTreeStructImpl extends
                         }
                         minOccurs.put(child.toString(), minOccurs.get(child.toString()) - 1);
                     }
-                    xmlCode += xmlChildCode;
+                    xmlCode.append(xmlChildCode);
                 }
                 pathFilter = previousFilter;
             } else if (associatedFlatFiles.contains(child)) {
@@ -1463,16 +1403,14 @@ public class XsdTreeStructImpl extends
                 getMessageManager().sendMessage("[CREATE XML] from file: " + getCurrentFlatFile().fileURL
                         .getFile(), MessageManagerInt.simpleMessage);
 
-                observable
-                        .setCurrentFlatFile(getCurrentFlatFile().fileURL
-                                .getFile());
-                observable.setElement(node.toString());
-                observable.indentation++;
+				observable.setCurrentFlatFile(getCurrentFlatFile().fileURL.getFile());
+				observable.setElement(node.toString());
+				observable.setIndentation(observable.getIndentation() + 1);
 
                 boolean endOfFile = false;
                 getCurrentFlatFile().restartFile();
 
-                /* if the first line contains title, pass througth it */
+                /* if the first line contains title, pass through it */
                 if (getCurrentFlatFile().firstLineForTitles()) {
                     getCurrentFlatFile().nextLine();
                 }
@@ -1500,7 +1438,7 @@ public class XsdTreeStructImpl extends
                             }
                             minOccurs.put(child.toString(), minOccurs.get(child.toString()) - 1);
                         }
-                        xmlCode += xmlChildCode;
+                        xmlCode.append(xmlChildCode);
                         getCurrentFlatFile().nextLine();
                     } catch (IOException e) { /* end of the file */
                         endOfFile = true;
@@ -1524,7 +1462,7 @@ public class XsdTreeStructImpl extends
                          */
                     }
                     minOccurs.put(child.toString(), minOccurs.get(child.toString()) - 1);
-                    xmlCode += xmlChildCode;
+                    xmlCode.append(xmlChildCode);
                 }
             }
         }
@@ -1552,10 +1490,7 @@ public class XsdTreeStructImpl extends
 				}
 
 			} catch (ClassCastException e) {
-				/*
-				 * ok, max is unbounded and exception is throws when trying to
-				 * cast String to Integer
-				 */
+				/* ok, max is unbounded and exception is throws when trying to cast String to Integer */
 			}
 		}
 		
@@ -1565,7 +1500,9 @@ public class XsdTreeStructImpl extends
 			checkedAttributes.add(attribute.getName());
 			if (getValue(attribute) == null || getValue(attribute).isEmpty()) {
 				if (attribute.isRequired) {
-					getMessageManager().sendMessage(printPath(node.getPath()) + " attibute  " + attribute + " is required for " + node + " (line : " + lineNumber + ")", MessageManagerInt.warningMessage);
+					getMessageManager().sendMessage(printPath(node.getPath()) + " attribute  " + attribute +
+							" is required for " + node + " (line : " + lineNumber + ")",
+							MessageManagerInt.warningMessage);
 					errors = true;
 				} 
 				else {
@@ -1579,16 +1516,16 @@ public class XsdTreeStructImpl extends
 		if (errors) 
 			return "";
 
-		if (!xmlCode.trim().isEmpty()) {
-			xmlCode += "\n"+ indentation;
+		if (!xmlCode.toString().trim().isEmpty()) {
+			xmlCode.append("\n").append(indentation);
 		}
 		
 		String value = getValue(node);
 		if (value != null && !value.trim().isEmpty()) {
-			xmlCode += value;
+			xmlCode.append(value);
 		}
 
-		boolean isEmptyElement = xmlCode.isEmpty();
+		boolean isEmptyElement = xmlCode.length() == 0;
 		
 		if (!isEmptyElement)
 			return openElement(node, checkedAttributes, false) + xmlCode + closeElement(node, false);

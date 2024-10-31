@@ -15,8 +15,6 @@
 package psidev.psi.mi.filemakers.xmlMaker.mapping;
 
 import java.util.HashMap;
-
-//import javax.xml.bind.annotation.XmlTransient;
 import jakarta.xml.bind.annotation.XmlTransient;
 
 /**
@@ -43,13 +41,11 @@ public class FlatFileMapping {
 	 * associate a path to a separator
 	 */
 	@XmlTransient
-	public HashMap<String, String> separators = new HashMap<String, String>();
+	public HashMap<String, String> separators = new HashMap<>();
 
 	@XmlTransient
-	public boolean fisrtLineForTitle;
-	
-		
-	
+	public boolean firstLineForTitle;
+
 	public String getLineSeparator() {
 		return lineSeparator;
 	}
@@ -66,13 +62,12 @@ public class FlatFileMapping {
 		this.separators = separators;
 	}
 
-
-	public boolean isFisrtLineForTitle() {
-		return fisrtLineForTitle;
+	public boolean isFirstLineForTitle() {
+		return firstLineForTitle;
 	}
 
-	public void setFisrtLineForTitle(boolean fisrtLineForTitle) {
-		this.fisrtLineForTitle = fisrtLineForTitle;
+	public void setFirstLineForTitle(boolean firstLineForTitle) {
+		this.firstLineForTitle = firstLineForTitle;
 	}
 
 	public String getFileURL() {

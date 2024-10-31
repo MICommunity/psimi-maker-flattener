@@ -28,19 +28,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
-//import javax.xml.bind.JAXBContext;
-//import javax.xml.bind.JAXBException;
-//import javax.xml.bind.Marshaller;
-//import javax.xml.bind.Unmarshaller;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.Marshaller;
-
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -50,7 +45,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import psidev.psi.mi.filemakers.xmlMaker.gui.DictionaryPanel;
 import psidev.psi.mi.filemakers.xmlMaker.gui.FlatFileTabbedPanel;
 import psidev.psi.mi.filemakers.xmlMaker.gui.XsdTreePanelImpl;
@@ -64,28 +58,25 @@ import psidev.psi.mi.filemakers.xmlMaker.structure.XsdTreeStructImpl;
 import psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller.UniprotPanel;
 import psidev.psi.mi.filemakers.xsd.JTextPaneMessageManager;
 import psidev.psi.mi.filemakers.xsd.Utils;
-import psidev.psi.mi.filemakers.xsd.XsdNode;
-//import org.exolab.castor.xml.Marshaller;
+import psidev.psi.mi.filemakers.xmlMaker.structure.interactionsChecker.InteractionChecker;
 
 /**
  * Main class for the PSI files maker: this class displays a graphical interface
  * that allows to load and display an XML schema as a tree, to load several flat
- * files and display them as a list of columns, to select on the tree to wich
+ * files and display them as a list of columns, to select on the tree to which
  * nodes should be associated the flat files and to which nodes should be
- * associated the columns, to load dictionnaries and associate them to nodes for
+ * associated the columns, to load dictionaries and associate them to nodes for
  * which values form the flat file will be replaced by their definition, and to
- * print in an XML file. Some checkings can be made and some warnings are
+ * print in an XML file. Some checking can be made and some warnings are
  * displayed that allow to know if associations respect or not the schema.
- * 
- * 
+ *
  * @author Arnaud Ceol, University of Rome "Tor Vergata", Mint group,
  *         arnaud.ceol@gmail.com
  * 
  */
 public class XmlMakerGui extends JFrame {
 
-	private static final Log log = LogFactory
-     .getLog(XmlMakerGui.class);
+	private static final Log log = LogFactory.getLog(XmlMakerGui.class);
 	
 	static String mappingFileName = null;
 
@@ -139,7 +130,8 @@ public class XmlMakerGui extends JFrame {
 			System.exit(0);
 		}
 
-		String mappingFileName = line.getOptionValue("mapping");
+        line.getOptionValue("mapping");
+        String mappingFileName;
 		String flatFiles = line.getOptionValue("flatfiles");
 		String dictionaries = line.getOptionValue("dictionaries");
 		String schema = line.getOptionValue("schema");
@@ -159,7 +151,7 @@ public class XmlMakerGui extends JFrame {
 				if (flatFiles != null) {
 					String[] files = flatFiles.replaceAll("'", "").split(",");
 					for (int j = 0; j < files.length; j++) {
-						((FlatFileMapping) mapping.getFlatFiles().get(j)).setFileURL(files[j]);
+						mapping.getFlatFiles().get(j).setFileURL(files[j]);
 						System.out.println("flat file " + j + ": " + files[j]);
 					}
 				}
@@ -167,7 +159,7 @@ public class XmlMakerGui extends JFrame {
 				if (dictionaries != null) {
 					String[] files = dictionaries.replaceAll("'", "").split(",");
 					for (int j = 0; j < files.length; j++) {
-						((DictionaryMapping) mapping.getDictionaries().get(j)).setFileURL(files[j]);
+						mapping.getDictionaries().get(j).setFileURL(files[j]);
 						System.out.println("dictionary " + j + ": " + files[j]);
 					}
 				}
@@ -175,7 +167,6 @@ public class XmlMakerGui extends JFrame {
 				if (schema != null) {
 					mapping.getTree().setSchemaURL(schema.replaceAll("'", ""));
 				}
-
 				xml.load(mapping);
 			} catch (FileNotFoundException e) {
 				System.err.println("File not found : " + mappingFileName);
@@ -184,10 +175,9 @@ public class XmlMakerGui extends JFrame {
 
 	}
 
-
 	private static void displayUsage(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
-		if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
+		if (System.getProperty("os.name").toLowerCase().contains("windows")) {
 			formatter.printHelp("bin/xmlmaker-gui.bat ", options);
 		} else {
 			formatter.printHelp("sh bin/xmlmaker-gui ", options);
@@ -196,16 +186,14 @@ public class XmlMakerGui extends JFrame {
 
 	public void load() {
 		JFileChooser fc;
-		if (Utils.lastVisitedMappingDirectory != null) {
-			fc = new JFileChooser(Utils.lastVisitedMappingDirectory);
-		} else
-			fc = new JFileChooser(".");
+        fc = new JFileChooser(Objects.requireNonNullElse(Utils.lastVisitedMappingDirectory, "."));
 
 		int returnVal = fc.showOpenDialog(new JFrame());
 		if (returnVal != JFileChooser.APPROVE_OPTION) {
 			return;
 		}
-		load(fc.getSelectedFile());
+        new InteractionChecker();
+        load(fc.getSelectedFile());
 	}
 
 	private void load(File mappingFile) {
@@ -265,20 +253,20 @@ public class XmlMakerGui extends JFrame {
 		try {
 
 			/* flat files */
-			flatFileTabbedPanel.flatFileContainer.flatFiles = new ArrayList<FlatFile>();
+			flatFileTabbedPanel.flatFileContainer.flatFiles = new ArrayList<>();
 
 			for (int i = 0; i < mapping.getFlatFiles().size(); i++) {
-				FlatFileMapping ffm = (FlatFileMapping) mapping.getFlatFiles().get(i);
+				FlatFileMapping ffm = mapping.getFlatFiles().get(i);
 				FlatFile f = new FlatFile();
 				if (ffm != null) {
+//					System.out.println("file" + f.); // TODO: check to fetch the list of stuff displayed in the flatfile panel
 					f.lineSeparator = ffm.getLineSeparator();
-					f.firstLineForTitles = ffm.isFisrtLineForTitle();
+					f.firstLineForTitles = ffm.isFirstLineForTitle();
 					f.setSeparators(ffm.getSeparators());
 
 					try {
 						URL url = new File(ffm.getFileURL()).toURI().toURL();
-						if (url != null)
-							f.load(url);
+                        f.load(url);
 					} catch (FileNotFoundException fe) {
 						JOptionPane.showMessageDialog(new JFrame(), "Unable to load file" + ffm.getFileURL(),
 								"[PSI makers: PSI maker] load flat file", JOptionPane.ERROR_MESSAGE);
@@ -289,12 +277,12 @@ public class XmlMakerGui extends JFrame {
 			treePanel.flatFileTabbedPanel.reload();
 
 			/* dictionaries */
-			dictionnaryLists.dictionaries.dictionaries = new ArrayList<Dictionary>();
+			dictionnaryLists.dictionaries.dictionaries = new ArrayList<>();
 
 			for (int i = 0; i < mapping.getDictionaries().size(); i++) {
-				DictionaryMapping dm = (DictionaryMapping) mapping.getDictionaries().get(i);
-				Dictionary d = new Dictionary();
-
+				DictionaryMapping dm =  mapping.getDictionaries().get(i);
+                new Dictionary();
+                Dictionary d;
 				try {
 					URL url = null;
 					if (dm.getFileURL() != null)
@@ -329,9 +317,9 @@ public class XmlMakerGui extends JFrame {
 				for (int i = 0; i < mapping.getFlatFiles().size(); i++) {
 					try {
 						flatFileTabbedPanel.tabbedPane.setTitleAt(i,
-								((XsdNode) xsdTree.getAssociatedFlatFiles().get(i)).toString());
+								xsdTree.getAssociatedFlatFiles().get(i).toString());
 					} catch (IndexOutOfBoundsException e) {
-						/** TODO: manage exception */
+						/* TODO: manage exception */
 					}
 				}
 
@@ -339,7 +327,7 @@ public class XmlMakerGui extends JFrame {
 				JOptionPane.showMessageDialog(new JFrame(), "File not found: " + schemaUrl, "[PSI makers]",
 						JOptionPane.ERROR_MESSAGE);
 			} catch (IOException ioe) {
-				JOptionPane.showMessageDialog(new JFrame(), "Unable to load file" + ioe.toString(), "[PSI makers]",
+				JOptionPane.showMessageDialog(new JFrame(), "Unable to load file" + ioe, "[PSI makers]",
 						JOptionPane.ERROR_MESSAGE);
 			}
 		} catch (IOException ioe) {
@@ -355,10 +343,7 @@ public class XmlMakerGui extends JFrame {
 	public void save() {
 		try {
 			JFileChooser fc;
-			if (Utils.lastVisitedMappingDirectory != null) {
-				fc = new JFileChooser(Utils.lastVisitedMappingDirectory);
-			} else
-				fc = new JFileChooser(".");
+            fc = new JFileChooser(Objects.requireNonNullElse(Utils.lastVisitedMappingDirectory, "."));
 
 			int returnVal = fc.showSaveDialog(new JFrame());
 			if (returnVal != JFileChooser.APPROVE_OPTION) {
@@ -376,8 +361,7 @@ public class XmlMakerGui extends JFrame {
 
 			/* dictionaries */
 			for (int i = 0; i < treePanel.dictionaryPanel.dictionaries.getDictionaries().size(); i++) {
-				mapping.getDictionaries()
-						.add(((Dictionary) xsdTree.dictionaries.getDictionaries().get(i)).getMapping());
+				mapping.getDictionaries().add(( xsdTree.dictionaries.getDictionaries().get(i)).getMapping());
 			}
 
 			/* flat files */
@@ -396,9 +380,9 @@ public class XmlMakerGui extends JFrame {
 		} catch (Exception ex) {
 			System.out.println("pb: " + ex);
 			StackTraceElement[] s = ex.getStackTrace();
-			for (int i = 0; i < s.length; i++) {
-				System.out.println(s[i]);
-			}
+            for (StackTraceElement stackTraceElement : s) {
+                System.out.println(stackTraceElement);
+            }
 		}
 	}
 
@@ -440,7 +424,7 @@ public class XmlMakerGui extends JFrame {
 		getContentPane().add(treePanel, BorderLayout.CENTER);
 
 		treePanel.setTabFileTabbedPanel(flatFileTabbedPanel);
-		treePanel.setDictionnaryPanel(dictionnaryLists);
+		treePanel.setDictionaryPanel(dictionnaryLists);
 		treePanel.setUniprotPanel(uniprotPanel);
 		final CloseView fv = new CloseView();
 		addWindowListener(fv);
@@ -452,10 +436,10 @@ public class XmlMakerGui extends JFrame {
 		if (mappingFileName != null) {
 			load(new File(mappingFileName));
 		}
+		// TODO: check if possible to load directly the psimi3.0 -> juanjo's code?
 ////		if (mappingFileName != null) {
 //			load(new File("BioPlex3.0_mapping_v2.xml"));
 ////		}
-
 	}
 
 	/**
@@ -500,11 +484,11 @@ public class XmlMakerGui extends JFrame {
 	 */
 	public class XmlMakerMenu extends JMenuBar {
 		public XmlMakerMenu() {
-			JMenu file = new JMenu(new String("File"));
-			JMenuItem save = new JMenuItem(new String("Save mapping"));
-			JMenuItem load = new JMenuItem(new String("Load mapping"));
-			JMenuItem clear = new JMenuItem(new String("New mapping"));
-			JMenuItem exit = new JMenuItem(new String("Exit"));
+			JMenu file = new JMenu("File");
+			JMenuItem save = new JMenuItem("Save mapping");
+			JMenuItem load = new JMenuItem("Load mapping");
+			JMenuItem clear = new JMenuItem("New mapping");
+			JMenuItem exit = new JMenuItem("Exit");
 			clear.addActionListener(new clearListener());
 			load.addActionListener(new LoadListener());
 			save.addActionListener(new SaveListener());
@@ -515,7 +499,7 @@ public class XmlMakerGui extends JFrame {
 			file.add(exit);
 			add(file);
 
-			JMenu help = new JMenu(new String("Help"));
+			JMenu help = new JMenu("Help");
 			JMenuItem documentation = new JMenuItem("Documentation");
 			documentation.addActionListener(new DisplayDocumentationListener());
 			JMenuItem about = new JMenuItem("About");
@@ -563,7 +547,6 @@ public class XmlMakerGui extends JFrame {
 		}
 	}
 
-
 	public class LoadListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			load();
@@ -571,11 +554,11 @@ public class XmlMakerGui extends JFrame {
 	}
 
 	public void clear() {
-		flatFileTabbedPanel.flatFileContainer.flatFiles = new ArrayList<FlatFile>();
+		flatFileTabbedPanel.flatFileContainer.flatFiles = new ArrayList<>();
 		flatFileTabbedPanel.flatFileContainer.flatFiles.add(new FlatFile());
 		treePanel.flatFileTabbedPanel.reload();
 
-		dictionnaryLists.dictionaries.dictionaries = new ArrayList<Dictionary>();
+		dictionnaryLists.dictionaries.dictionaries = new ArrayList<>();
 		treePanel.dictionaryPanel.reload();
 
 		getContentPane().remove(treePanel);
@@ -588,7 +571,7 @@ public class XmlMakerGui extends JFrame {
 		getContentPane().add(treePanel, BorderLayout.CENTER);
 
 		treePanel.setTabFileTabbedPanel(flatFileTabbedPanel);
-		treePanel.setDictionnaryPanel(dictionnaryLists);
+		treePanel.setDictionaryPanel(dictionnaryLists);
 		treePanel.setUniprotPanel(uniprotPanel);
 
 		treePanel.xsdTree.treeModel.reload();

@@ -61,6 +61,7 @@ import org.exolab.castor.xml.schema.Documentation;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Structure;
 
+import psidev.psi.mi.filemakers.xmlMaker.structure.MarshallingObservable;
 import psidev.psi.mi.filemakers.xmlMaker.structure.XsdTreeStructImpl;
 import psidev.psi.mi.filemakers.xmlMaker.structure.uniprotCaller.UniprotPanel;
 import psidev.psi.mi.filemakers.xsd.AbstractXsdTreePanel;
@@ -70,9 +71,9 @@ import psidev.psi.mi.filemakers.xsd.XsdNode;
 
 /**
  * 
- * This class overides the abstract class AbstractXslTree to provide a tree
- * representation of a XML schema, with management of marshaling of several flat
- * files to a XML file that respects the schema
+ * This class overrides the abstract class AbstractXslTree to provide a tree
+ * representation of an XML schema, with management of marshaling of several flat
+ * files to an XML file that respects the schema
  * 
  * @author Arnaud Ceol, University of Rome "Tor Vergata", Mint group,
  *         arnaud.ceol@gmail.com
@@ -94,7 +95,7 @@ public class XsdTreePanelImpl extends
 				.getLastSelectedPathComponent();
 
 		if (selectedNode == null) {
-			xsdTree.getMessageManager().sendMessage("no node seletected",
+			xsdTree.getMessageManager().sendMessage("no node selected",
 					MessageManagerInt.errorMessage);
 			return;
 		}
@@ -123,8 +124,8 @@ public class XsdTreePanelImpl extends
 
 		if (fieldAssociation.isSelected()) {
 			associateField(selectedNode);
-		} else if (dictionnaryAssociation.isSelected())
-			associateDictionnary(selectedNode);
+		} else if (dictionaryAssociation.isSelected())
+			associateDictionary(selectedNode);
 		else if (defaultAssociation.isSelected())
 			associateDefaultValue(selectedNode);
 		else if (autoGenerationAssociationButton.isSelected())
@@ -138,10 +139,9 @@ public class XsdTreePanelImpl extends
 	public FlatFileTabbedPanel flatFileTabbedPanel;
 
 	/**
-	 * panel for dictionnaries
+	 * panel for dictionaries
 	 */
 	public DictionaryPanel dictionaryPanel;
-
 
 	/**
 	 * panel for uniprot ac
@@ -149,7 +149,7 @@ public class XsdTreePanelImpl extends
 	public UniprotPanel uniprotPanel;
 
 	/**
-	 * create a new instance of XslTree The nodes will be automaticaly
+	 * create a new instance of XslTree The nodes will be automatically
 	 * duplicated if the schema specify that more than one element of this type
 	 * are mandatory
 	 */
@@ -158,17 +158,17 @@ public class XsdTreePanelImpl extends
 
 		messagePane.setEditable(false);
 
-		JScrollPane scrollpane = new JScrollPane(messagePane);
-		scrollpane.setMaximumSize(new Dimension(Short.MAX_VALUE, 150));
-		scrollpane.setMinimumSize(new Dimension(200, 150));
-		scrollpane.setPreferredSize(new Dimension(200, 150));
-		scrollpane
+		JScrollPane scrollPane = new JScrollPane(messagePane);
+		scrollPane.setMaximumSize(new Dimension(Short.MAX_VALUE, 150));
+		scrollPane.setMinimumSize(new Dimension(200, 150));
+		scrollPane.setPreferredSize(new Dimension(200, 150));
+		scrollPane
 				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollpane
+		scrollPane
 				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		scrollpane.setBorder(new TitledBorder("Messages"));
+		scrollPane.setBorder(new TitledBorder("Messages"));
 
-		add(scrollpane, BorderLayout.SOUTH);
+		add(scrollPane, BorderLayout.SOUTH);
 		add(getButtonPanel(), BorderLayout.EAST);
 		MouseListener mouseListener = new TreeMouseAdapter();
 		xsdTree.tree.addMouseListener(mouseListener);
@@ -180,7 +180,7 @@ public class XsdTreePanelImpl extends
 
 	public JRadioButton duplicableFieldAssociation;
 
-	public JRadioButton dictionnaryAssociation;
+	public JRadioButton dictionaryAssociation;
 
 	public JRadioButton defaultAssociation;
 
@@ -188,12 +188,10 @@ public class XsdTreePanelImpl extends
 
 	public JRadioButton flatFileAssociation;
 
-	// File logoutFile;
-
 	/**
 	 * create a button panel that includes buttons for loading the schema, to
 	 * associate a node to a flat file, a cell a default value or to specify
-	 * that a value should be automaticaly generated, to get informations about
+	 * that a value should be automatically generated, to get information about
 	 * the node, print the XML file or just have a preview of it.
 	 */
 	public Box getButtonPanel() {
@@ -213,10 +211,10 @@ public class XsdTreePanelImpl extends
 		Box outputBox = new Box(BoxLayout.Y_AXIS);
 		outputBox.setBorder(new TitledBorder("Output"));
 
-		/* add a button for loading a XML Schema */
-		JButton loadFileb = new JButton("Open File");
-		Utils.setDefaultSize(loadFileb);
-		loadFileb.addActionListener(new LoadSchemaListener());
+		/* add a button for loading an XML Schema */
+		JButton loadFileButton = new JButton("Open File");
+		Utils.setDefaultSize(loadFileButton);
+		loadFileButton.addActionListener(new LoadSchemaListener());
 
 		JButton loadURLb = new JButton("Open URL");
 		Utils.setDefaultSize(loadURLb);
@@ -227,49 +225,49 @@ public class XsdTreePanelImpl extends
 		setIdb.addActionListener(new SetIdListener());
 
 		/* add a button for duplicate a node (in case of lists) */
-		JButton duplicateb = new JButton("Duplicate");
-		Utils.setDefaultSize(duplicateb);
-		duplicateb.addActionListener(new DuplicateListener());
+		JButton duplicateButton = new JButton("Duplicate");
+		Utils.setDefaultSize(duplicateButton);
+		duplicateButton.addActionListener(new DuplicateListener());
 
-		/* add a button for restauring original choice */
-		JButton choiceb = new JButton("Restore");
-		Utils.setDefaultSize(choiceb);
-		choiceb.addActionListener(new OriginalNodeListener());
+		/* add a button for restoring original choice */
+		JButton choiceButton = new JButton("Restore");
+		Utils.setDefaultSize(choiceButton);
+		choiceButton.addActionListener(new OriginalNodeListener());
 
-		JButton infosb = new JButton("About");
-		Utils.setDefaultSize(infosb);
-		infosb.addActionListener(new InfosListener());
+		JButton infosButton = new JButton("About");
+		Utils.setDefaultSize(infosButton);
+		infosButton.addActionListener(new InfosListener());
 
-		JButton checkb = new JButton("Check");
-		Utils.setDefaultSize(checkb);
-		checkb.addActionListener(new CheckListener());
+		JButton checkButton = new JButton("Check");
+		Utils.setDefaultSize(checkButton);
+		checkButton.addActionListener(new CheckListener());
 
-		JButton previewb = new JButton("Preview");
-		Utils.setDefaultSize(previewb);
-		previewb.addActionListener(new PreviewListener());
+		JButton previewButton = new JButton("Preview");
+		Utils.setDefaultSize(previewButton);
+		previewButton.addActionListener(new PreviewListener());
 
-		JButton printb = new JButton("Make XML");
-		Utils.setDefaultSize(printb);
-		printb.addActionListener(new PrintListener());
+		JButton printButton = new JButton("Make XML");
+		Utils.setDefaultSize(printButton);
+		printButton.addActionListener(new PrintListener());
 
-		treeBox.add(loadFileb);
+		treeBox.add(loadFileButton);
 		treeBox.add(loadURLb);
 		treeBox.add(setIdb);
-		treeBox.add(checkb);
+		treeBox.add(checkButton);
 		treeBox.setBorder(new TitledBorder("Schema"));
 
-		nodeBox.add(duplicateb);
-		nodeBox.add(choiceb);
-		nodeBox.add(infosb);
+		nodeBox.add(duplicateButton);
+		nodeBox.add(choiceButton);
+		nodeBox.add(infosButton);
 
-		outputBox.add(previewb);
-		outputBox.add(printb);
+		outputBox.add(previewButton);
+		outputBox.add(printButton);
 
 		associationButtons = new ButtonGroup();
 
 		fieldAssociation = new JRadioButton("to field");
 		duplicableFieldAssociation = new JRadioButton("to duplicable field");
-		dictionnaryAssociation = new JRadioButton("to dictionnary");
+		dictionaryAssociation = new JRadioButton("to dictionary");
 		defaultAssociation = new JRadioButton("to default value");
 		autoGenerationAssociationButton = new JRadioButton("to automatic value");
 		flatFileAssociation = new JRadioButton("to flat file");
@@ -277,18 +275,18 @@ public class XsdTreePanelImpl extends
 		associationButtons.add(flatFileAssociation);
 		associationButtons.add(duplicableFieldAssociation);
 		associationButtons.add(fieldAssociation);
-		associationButtons.add(dictionnaryAssociation);
+		associationButtons.add(dictionaryAssociation);
 		associationButtons.add(defaultAssociation);
 		associationButtons.add(autoGenerationAssociationButton);
 		associationButtons.setSelected(flatFileAssociation.getModel(), true);
 
-		JButton genericAssociationb = new JButton("Associate");
-		Utils.setDefaultSize(genericAssociationb);
-		genericAssociationb.addActionListener(new GenericAssociationListener());
+		JButton genericAssociationButton = new JButton("Associate");
+		Utils.setDefaultSize(genericAssociationButton);
+		genericAssociationButton.addActionListener(new GenericAssociationListener());
 
-		JButton genericCancelAssociationb = new JButton("Cancel");
-		Utils.setDefaultSize(genericCancelAssociationb);
-		genericCancelAssociationb
+		JButton genericCancelAssociationButton = new JButton("Cancel");
+		Utils.setDefaultSize(genericCancelAssociationButton);
+		genericCancelAssociationButton
 				.addActionListener(new GenericCancelAssociationListener());
 
 		associationBox.add(flatFileAssociation);
@@ -296,17 +294,17 @@ public class XsdTreePanelImpl extends
 		associationBox.add(duplicableFieldAssociation);
 
 		associationBox.add(fieldAssociation);
-		JButton editFieldb = new JButton("validation");
-		Utils.setDefaultSize(editFieldb);
-		editFieldb.addActionListener(new EditFieldAssociationListener());
-		associationBox.add(editFieldb);
-		associationBox.add(dictionnaryAssociation);
+		JButton editFieldButton = new JButton("validation");
+		Utils.setDefaultSize(editFieldButton);
+		editFieldButton.addActionListener(new EditFieldAssociationListener());
+		associationBox.add(editFieldButton);
+		associationBox.add(dictionaryAssociation);
 //		associationBox.add(defaultAssociation); // TODO: why is it duplicated?
 		associationBox.add(defaultAssociation);
 		associationBox.add(autoGenerationAssociationButton);
 
-		associationBox.add(genericAssociationb);
-		associationBox.add(genericCancelAssociationb);
+		associationBox.add(genericAssociationButton);
+		associationBox.add(genericCancelAssociationButton);
 
 		buttonsPanel.add(treeBox);
 		buttonsPanel.add(associationBox);
@@ -316,18 +314,19 @@ public class XsdTreePanelImpl extends
 	}
 
 	/**
-	 * associate this Panel to a list of dictionnaries
+	 * associate this Panel to a list of dictionaries
 	 * 
 	 * @param d
-	 *            a DictionnaryPanel
+	 *            a DictionaryPanel
 	 */
-	public void setDictionnaryPanel(DictionaryPanel d) {
+	public void setDictionaryPanel(DictionaryPanel d) {
 		dictionaryPanel = d;
 	}
 
 	public void setUniprotPanel(UniprotPanel p) {
 		uniprotPanel = p;
 	}
+
 	/**
 	 * associate this Panel to a FlatFileTabbedPanel
 	 * 
@@ -339,7 +338,7 @@ public class XsdTreePanelImpl extends
 		((XsdTreeStructImpl) xsdTree).flatFiles = panel.flatFileContainer;
 	}
 
-	public class AssociateDictionnaryListPanel extends JPanel {
+	public class AssociateDictionaryListPanel extends JPanel {
 
 		int column;
 
@@ -357,13 +356,13 @@ public class XsdTreePanelImpl extends
 			return column;
 		}
 
-		public AssociateDictionnaryListPanel() {
+		public AssociateDictionaryListPanel() {
 			super();
 			setLayout(new BorderLayout());
 
 			list = new JList(dictionaryPanel.getExampleList());
 			JScrollPane scrollList = new JScrollPane(list);
-			list.addListSelectionListener(new SetColumnlistener());
+			list.addListSelectionListener(new SetColumnListener());
 			add(new JLabel(
 					"Select the field that contains the definition and press OK:"),
 					BorderLayout.NORTH);
@@ -380,7 +379,7 @@ public class XsdTreePanelImpl extends
 			add(box, BorderLayout.SOUTH);
 		}
 
-		public class SetColumnlistener implements ListSelectionListener {
+		public class SetColumnListener implements ListSelectionListener {
 			public void valueChanged(ListSelectionEvent e) {
 				column = list.getSelectedIndex();
 			}
@@ -460,9 +459,7 @@ public class XsdTreePanelImpl extends
 	public class LoadSchemaListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			loadSchema();
-//			if (xsdTree.schema != null)
-//				((psidev.psi.mi.filemakers.xmlFlattener.structure.XsdTreeStructImpl) xsdTree).setXmlRoot();
-		}
+        }
 	}
 
 	public class LoadURLSchemaListener implements ActionListener {
@@ -548,7 +545,7 @@ public class XsdTreePanelImpl extends
 			return;
 		}
 
-		int previousFlatfileAssociated = ((XsdTreeStructImpl) xsdTree).associatedFlatFiles
+		int previousFlatFileAssociated = ((XsdTreeStructImpl) xsdTree).associatedFlatFiles
 				.indexOf(node);
 
 		try {
@@ -558,10 +555,10 @@ public class XsdTreePanelImpl extends
 			/* ok, no association yet */
 		}
 
-		/* delete name from ex-associated flatfile */
-		if (previousFlatfileAssociated > -1)
+		/* delete name from ex-associated flat-file */
+		if (previousFlatFileAssociated > -1)
 			flatFileTabbedPanel.tabbedPane.setTitleAt(
-					previousFlatfileAssociated, "");
+					previousFlatFileAssociated, "");
 
 		((XsdTreeStructImpl) xsdTree).associateFlatFile(node, flatFileIndex);
 		flatFileTabbedPanel.tabbedPane.setTitleAt(
@@ -598,17 +595,17 @@ public class XsdTreePanelImpl extends
 	}
 
 	/**
-	 * associate a dictionnary to the node selected. Each time a value will be
+	 * associate a dictionary to the node selected. Each time a value will be
 	 * requested for this node, it will be changed for its replacement value in
 	 * target list if it exists
 	 *
      */
-	public void associateDictionnary(XsdNode node) {
+	public void associateDictionary(XsdNode node) {
 
-		int dictionnary = dictionaryPanel.getSelectedDictionnary();
+		int dictionary = dictionaryPanel.getSelectedDictionnary();
 
-		if (dictionnary == -1) { // no selection
-			xsdTree.getMessageManager().sendMessage("No dictonnary selected",
+		if (dictionary == -1) { // no selection
+			xsdTree.getMessageManager().sendMessage("No dictionary selected",
 					MessageManagerInt.errorMessage);
 			return;
 		}
@@ -616,15 +613,15 @@ public class XsdTreePanelImpl extends
 		if (dictionaryPanel.getExampleList().length == 0) { // no selection
 			xsdTree.getMessageManager()
 					.sendMessage(
-							"This dictionnary does not contain any value,"
+							"This dictionary does not contain any value,"
 									+ " maybe the separator has not been set properly.",
 							MessageManagerInt.errorMessage);
 			return;
 		}
 
-		AssociateDictionnaryListPanel adp = new AssociateDictionnaryListPanel();
+		AssociateDictionaryListPanel adp = new AssociateDictionaryListPanel();
 		int confirm = JOptionPane.showConfirmDialog(null, adp,
-				"[XML maker] load dictionnary", JOptionPane.OK_CANCEL_OPTION,
+				"[XML maker] load dictionary", JOptionPane.OK_CANCEL_OPTION,
 				JOptionPane.QUESTION_MESSAGE);
 
 		if (confirm != JOptionPane.OK_OPTION)
@@ -636,7 +633,7 @@ public class XsdTreePanelImpl extends
 			return;
 		}
 
-		((XsdTreeStructImpl) xsdTree).associateDictionnary(node, dictionnary,
+		((XsdTreeStructImpl) xsdTree).associateDictionary(node, dictionary,
 				adp.getColumn(), adp.closedAssociation.isSelected());
 	}
 
@@ -672,9 +669,9 @@ public class XsdTreePanelImpl extends
 			if (fieldAssociation.isSelected())
 				((XsdTreeStructImpl) xsdTree)
 						.cancelAssociateField(selectedNode);
-			else if (dictionnaryAssociation.isSelected())
+			else if (dictionaryAssociation.isSelected())
 				((XsdTreeStructImpl) xsdTree)
-						.cancelAssociateDictionnary(selectedNode);
+						.cancelAssociateDictionary(selectedNode);
 			else if (defaultAssociation.isSelected())
 				((XsdTreeStructImpl) xsdTree).cancelDefaultValue(selectedNode);
 			else if (autoGenerationAssociationButton.isSelected())
@@ -707,7 +704,7 @@ public class XsdTreePanelImpl extends
 						.setText(((XsdTreeStructImpl) xsdTree)
 								.previewNode((XsdNode) xsdTree.tree
 										.getLastSelectedPathComponent()));
-			} catch (NullPointerException noNodeExeption) {
+			} catch (NullPointerException noNodeException) {
 				/* no node selected */
 				editorPane.setText("No preview available.");
 			}
@@ -741,7 +738,6 @@ public class XsdTreePanelImpl extends
 
 	public class XsdTreeRenderer extends DefaultTreeCellRenderer {
 		ImageIcon iconAttribute;
-
 		ImageIcon iconElement;
 
 		public XsdTreeRenderer() {
@@ -753,8 +749,7 @@ public class XsdTreePanelImpl extends
 				boolean sel, boolean expanded, boolean leaf, int row,
 				boolean hasFocus) {
 
-			super.getTreeCellRendererComponent(tree, value, sel, expanded,
-					leaf, row, hasFocus);
+			super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 			XsdNode node = (XsdNode) value;
 			/* set icon and tooltip */
 			switch (((Annotated) node.getUserObject()).getStructureType()) {
@@ -788,7 +783,7 @@ public class XsdTreePanelImpl extends
 							+ ((AttributeDecl) node.getUserObject())
 									.getSimpleType().getName() + ")      ");
 				} catch (NullPointerException npe) {
-					/* no type defined, assume it's text */
+					/* no type defined, assume its text */
 					setText(getText() + " (" + "no type" + ")      ");
 				}
 				break;
@@ -835,7 +830,7 @@ public class XsdTreePanelImpl extends
 					|| ((XsdTreeStructImpl) xsdTree).associatedClosedDictionary
 							.containsKey(node)) {
 				setText(getText().substring(0, getText().length() - 5)
-						+ "(dictionnary)");
+						+ "(dictionary)");
 			}
 
 			setForeground(Color.LIGHT_GRAY);
@@ -861,27 +856,22 @@ public class XsdTreePanelImpl extends
 
 			if (((XsdTreeStructImpl) xsdTree).isAffected(node2check)
 					|| ((XsdTreeStructImpl) xsdTree).hasDefaultValue(node)
-					|| ((XsdTreeStructImpl) xsdTree).associatedAutogeneration
-							.contains(node))
+					|| ((XsdTreeStructImpl) xsdTree).associatedAutogeneration.contains(node))
 				setForeground(Color.BLUE);
 
 			/* show nodes associated to flat files */
-			if (((XsdTreeStructImpl) xsdTree).associatedFlatFiles
-					.contains(node2check))
+			if (((XsdTreeStructImpl) xsdTree).associatedFlatFiles.contains(node2check))
 				setForeground(Color.GREEN);
 
 			return this;
 		}
 	}
 
-
 	/**
 	 * print a xml output for the whole file
 	 */
 	public class PrintListener implements ActionListener {
-
 		public void actionPerformed(ActionEvent e) {
-
 			if (xsdTree.rootNode == null) {
 				xsdTree.getMessageManager().sendMessage("No schema loaded",
 						MessageManagerInt.errorMessage);
@@ -900,27 +890,28 @@ public class XsdTreePanelImpl extends
 				if (confirm != JOptionPane.OK_OPTION)
 					return;
 
-				Utils.lastVisitedDirectory = fileChooser.getSelectedFile()
-						.getPath();
-				Utils.lastVisitedOutputDirectory = fileChooser
-						.getSelectedFile().getPath();
+				Utils.lastVisitedDirectory = fileChooser.getSelectedFile().getPath();
+				Utils.lastVisitedOutputDirectory = fileChooser.getSelectedFile().getPath();
 
 				File out = fileChooser.getSelectedFile();
 
+//				MarshallingObserver observer = new MarshallingObserver();
+//				observer.setObservable(((XsdTreeStructImpl) xsdTree).observable);
+//				((XsdTreeStructImpl) xsdTree).observable.addObserver(observer);
 				MarshallingObserver observer = new MarshallingObserver();
-				observer.setObservable(((XsdTreeStructImpl) xsdTree).observable);
-				((XsdTreeStructImpl) xsdTree).observable.addObserver(observer);
-
+				MarshallingObservable observable = ((XsdTreeStructImpl) xsdTree).observable;
+				observable.addPropertyChangeListener(observer);
+				
 				Date DateCurrent = new Date(System.currentTimeMillis());
 
 				xsdTree.getMessageManager().sendMessage(
-						"[CREATE XML] start writting XML document: "
+						"[CREATE XML] start writing XML document: "
 								+ DateCurrent,
 						MessageManagerInt.simpleMessage);
-				((XsdTreeStructImpl) xsdTree).print2(out);
+				((XsdTreeStructImpl) xsdTree).createXml(out);
 				DateCurrent = new Date(System.currentTimeMillis());
 				xsdTree.getMessageManager().sendMessage(
-						"[CREATE XML] finished writting XML document: "
+						"[CREATE XML] finished writing XML document: "
 								+ DateCurrent,
 						MessageManagerInt.simpleMessage);
 
@@ -932,7 +923,7 @@ public class XsdTreePanelImpl extends
 
 	}
 
-	public class AssociateFieldPanel extends JPanel {
+	public static class AssociateFieldPanel extends JPanel {
 		String filter = "";
 
 		JTextField regexp = new JTextField("");
@@ -941,18 +932,6 @@ public class XsdTreePanelImpl extends
 
 		JCheckBox unduplicableAssociation = new JCheckBox(
 				"do not duplicate the node (keep value of first line)");
-
-		public AssociateFieldPanel() {
-			super();
-
-			setLayout(new BorderLayout());
-			Box box = new Box(BoxLayout.Y_AXIS);
-			box.add(unduplicableAssociation);
-			box.add(regexpLbl);
-			box.add(regexp);
-
-			add(box, BorderLayout.SOUTH);
-		}
 
 		public AssociateFieldPanel(String regexp,
 				boolean unduplicableAssociation) {
@@ -974,7 +953,7 @@ public class XsdTreePanelImpl extends
 	}
 
 	/**
-	 * used to display in a new panel informations about the node selected
+	 * used to display in a new panel information about the node selected
 	 */
 	public class EditFieldAssociationListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -1001,7 +980,7 @@ public class XsdTreePanelImpl extends
 			String regexp = ((XsdTreeStructImpl) xsdTree).getRegexp(node);
 
 			AssociateFieldPanel afp = new AssociateFieldPanel(regexp,
-					unduplicableNode);
+                    unduplicableNode);
 			int confirm = JOptionPane.showConfirmDialog(null, afp,
 					"[XML maker] field association",
 					JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
@@ -1014,7 +993,7 @@ public class XsdTreePanelImpl extends
 					Pattern.compile(afp.regexp.getText().trim());
 				} catch (PatternSyntaxException pse) {
 					xsdTree.getMessageManager().sendMessage(
-							"unvalid regular expression",
+							"invalid regular expression",
 							MessageManagerInt.errorMessage);
 					return;
 				}

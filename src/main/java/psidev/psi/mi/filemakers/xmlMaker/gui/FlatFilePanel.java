@@ -25,21 +25,9 @@ import java.awt.event.ItemListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 import psidev.psi.mi.filemakers.xmlMaker.structure.FlatFile;
@@ -48,7 +36,7 @@ import psidev.psi.mi.filemakers.xsd.Utils;
 
 /**
  * The class provide graphical management for a tab delimited file <br>
- * It allows to load a file, choose the field delimitor, and recursively enter
+ * It allows to load a file, choose the field delimiter, and recursively enter
  * into the fields and split them.
  * 
  * @author Arnaud Ceol, University of Rome "Tor Vergata", Mint group,
@@ -71,36 +59,33 @@ public class FlatFilePanel extends JPanel {
 	 */
 	public class setSeparatorListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			String s = (String) JOptionPane.showInputDialog(new JFrame(
+			String s = JOptionPane.showInputDialog(new JFrame(
 					"[PSI makers: PSI maker] Flat File"),
 					"Separator (use regular expression, e.g.: ; ;|:|, \\| ",
 					flatFile.getSeparator(currentPath));
 			if (s != null)
 				try {
 					flatFile.setSeparator(currentPath, s);
-					//					if (flatFile.line != null) {
 					updateList();
 					separatorLbl.setText(s);
-					//					}
 				} catch (java.util.regex.PatternSyntaxException ex) {
 					JOptionPane
 							.showMessageDialog(
 									new JFrame(),
-									"the separator specified is not a valid regular expression.",
+									"The specified separator is not a valid regular expression.",
 									"Separator", JOptionPane.ERROR_MESSAGE);
 				}
 		}
 	}
 
-	class MyCellRenderer extends JLabel implements ListCellRenderer {
+	static class MyCellRenderer extends JLabel implements ListCellRenderer {
 		public Component getListCellRendererComponent(JList list, Object value,
 				int index, boolean isSelected, boolean cellHasFocus) {
 			try {
 				setToolTipText(value.toString());
 				String s = value.toString();
 				setText(s);
-			} catch (NullPointerException npe) {
-				/* no value */
+			} catch (NullPointerException ignored) {
 			}
 			if (isSelected) {
 				setBackground(list.getSelectionBackground());
@@ -226,8 +211,7 @@ public class FlatFilePanel extends JPanel {
 	 */
 	public void loadFile() throws IOException {
 		JTextField separator = new JTextField();
-		JTextField fileName = new JTextField();
-		JCheckBox forgetFirstLine = new JCheckBox();
+        JCheckBox forgetFirstLine = new JCheckBox();
 		try {
 			Box panel = new Box(BoxLayout.Y_AXIS);
 
@@ -248,14 +232,14 @@ public class FlatFilePanel extends JPanel {
 				return;
 			}
 
-			if (separator != null && separator.getText().length() != 0) {
+			if (!separator.getText().isEmpty()) {
 				flatFile.lineSeparator = separator.getText();
 			} else {
 				flatFile.lineSeparator = null;
 			}
 
 			flatFile.firstLineForTitles = forgetFirstLine.isSelected();
-			URL fileURL = fc.getSelectedFile().toURL();
+			URL fileURL = fc.getSelectedFile().toURI().toURL();
 
 			flatFile.load(fileURL);
 
@@ -264,18 +248,13 @@ public class FlatFilePanel extends JPanel {
 
 			updateList();
 			skipFirstLineb.setSelected(flatFile.firstLineForTitles());
-		} catch (FileNotFoundException fe) {
-			JOptionPane.showMessageDialog(new JFrame(),
-					"Unable to load the file",
-					"[PSI makers: PSI maker] Flat File",
-					JOptionPane.ERROR_MESSAGE);
-		} catch (NullPointerException ioe) {
+		} catch (FileNotFoundException | NullPointerException fe) {
 			JOptionPane.showMessageDialog(new JFrame(),
 					"Unable to load the file",
 					"[PSI makers: PSI maker] Flat File",
 					JOptionPane.ERROR_MESSAGE);
 		}
-	}
+    }
 
 	public void updateList() {
 		String separator = flatFile.getSeparator(currentPath);
@@ -289,19 +268,23 @@ public class FlatFilePanel extends JPanel {
 			while (i < l.length) {
 				if (i < listModel.getSize()) {
 					listModel.set(i, l[i].trim());
-					i++;
-				} else {
+                } else {
 					listModel.addElement(l[i].trim());
-					i++;
-				}
-			}
+                }
+                i++;
+            }
 			while (i < listModel.getSize()) {
 				listModel.set(i, "");
 				/* if I had set it to null, it would be seen on the list */
 				i++;
 			}
 		}
+//		System.out.println(listModel.elements().toString());
 		separatorLbl.setText(flatFile.getSeparator(currentPath));
+	}
+
+	public ListModel getList(){
+		return listModel;
 	}
 
 	/**
@@ -316,7 +299,7 @@ public class FlatFilePanel extends JPanel {
 						"Unable to load file",
 						"[PSI makers: PSI maker] load flat file",
 						JOptionPane.ERROR_MESSAGE);
-				/** TODO: manage exception */
+				/* TODO: manage exception */
 			}
 		}
 	}
@@ -342,7 +325,7 @@ public class FlatFilePanel extends JPanel {
 			if (list.getSelectedIndex() == -1)
 				return;
 
-			if (currentPath == "")
+			if (Objects.equals(currentPath, ""))
 				flatFile.nextLineWithField("" + list.getSelectedIndex());
 			else
 				flatFile.nextLineWithField(currentPath + "."
@@ -369,32 +352,15 @@ public class FlatFilePanel extends JPanel {
 				flatFile.nextLine();
 				updateList();
 			} catch (Exception fme) {
-				/** TODO : manage it */
+				/* TODO : manage it */
 			}
 		}
 	}
 
-	/**
-	 * used to set the line separator
-	 */
-	public class setLineSeparatorListener implements ActionListener {
-		public void actionPerformed(ActionEvent e) {
-			String s = (String) JOptionPane
-					.showInputDialog(
-							new JFrame("[PSI makers: PSI maker] Flat File"),
-							"Line Separator (use regular expression, e.g.: // \n",
-							"//");
-
-			if (s != null)
-				flatFile.lineSeparator = s;
-			updateList();
-		}
-	}
-
 	public String getSelectedPath() {
-		if (currentPath == "" && list.getSelectedIndex() == -1)
+		if (Objects.equals(currentPath, "") && list.getSelectedIndex() == -1)
 			return "";
-		if (currentPath == "")
+		if (Objects.equals(currentPath, ""))
 			return "" + list.getSelectedIndex();
 		if (list.getSelectedIndex() == -1)
 			return currentPath;
@@ -406,7 +372,7 @@ public class FlatFilePanel extends JPanel {
 	 */
 	public class enterListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			if (currentPath == "")
+			if (Objects.equals(currentPath, ""))
 				currentPath += list.getSelectedIndex();
 			else
 				currentPath += "." + list.getSelectedIndex();
@@ -419,7 +385,7 @@ public class FlatFilePanel extends JPanel {
 	 */
 	public class backListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			if (currentPath.indexOf(".") == -1) {
+			if (!currentPath.contains(".")) {
 				currentPath = "";
 				updateList();
 				return;
@@ -427,19 +393,12 @@ public class FlatFilePanel extends JPanel {
 			currentPath = currentPath
 					.substring(0, currentPath.lastIndexOf("."));
 			updateList();
-			//		
-			//			if (listPanel.flatList != flatFile.rootList) {
-			//				listPanel.setVisible(false);
-			//				listPanel.flatList = listPanel.flatList.getParentList();
-			//				add(listPanel, BorderLayout.CENTER);
-			//				listPanel.setVisible(true);
-			//			}
-		}
+        }
 	}
 
 	public JTextField separatorLbl = new JTextField(3);
 
-	JCheckBox skipFirstLineb = new JCheckBox("skip first line");
+	JCheckBox skipFirstLineb = new JCheckBox("Skip first line");
 
 	public void setSkipFirstLine() {
 		flatFile.setFirstLineForTitles(skipFirstLineb.isSelected());

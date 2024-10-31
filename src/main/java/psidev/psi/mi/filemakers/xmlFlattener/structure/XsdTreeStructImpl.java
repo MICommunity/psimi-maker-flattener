@@ -15,15 +15,13 @@
 package psidev.psi.mi.filemakers.xmlFlattener.structure;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,6 +32,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.xerces.dom.DeferredTextImpl;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Structure;
 import org.w3c.dom.Document;
@@ -49,8 +48,8 @@ import psidev.psi.mi.filemakers.xsd.XsdNode;
 
 /**
  * 
- * This class overides the abstract class AbstractXslTreeStruct to provide a
- * tree representation of a XML schema, with management of transformation of an
+ * This class overrides the abstract class AbstractXslTreeStruct to provide a
+ * tree representation of an XML schema, with management of transformation of an
  * XML file to a flat file.
  * 
  * @author Arnaud Ceol, University of Rome "Tor Vergata", Mint group,
@@ -67,16 +66,6 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * This is not desirable for the GUI, because the user may want to change the   
 	 */
 	private static boolean allowCleanTree = true;
-	
-//	public static final int NUMERIC_NUMEROTATION = 0;
-//
-//	public static final int HIGH_ALPHABETIC_NUMEROTATION = 1;
-//
-//	public static final int LOW_ALPHABETIC_NUMEROTATION = 2;
-//
-//	public static final int NO_NUMEROTATION = 3;
-//
-//	public int numerotation_type = NUMERIC_NUMEROTATION;
 
 	private int curElementsCount = 0;
 
@@ -99,7 +88,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	private XsdNode lineXsdNode = null;
 
 	/**
-	 * true if the user has choosed a node that contains what he wants to see on
+	 * true if the user has chosen a node that contains what he wants to see on
 	 * a line of the flat file
 	 */
 	private boolean lineNodeIsSelected = false;
@@ -112,21 +101,11 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	private ArrayList<Node> lineElements = null;
 
 	/**
-	 * type of marshaling: for creating a line with columns titles
-	 */
-	public final static int TITLE = 0;
-
-	/**
 	 * Indicate if the document should be validated. Validating a document may
 	 * take time, but it is necessary for instance for using xml id (e.g. PSI-MI
 	 * xml 1.0)
 	 */
 	private static boolean validateDocument = false;
-
-	/**
-	 * type of marshaling: for not creating a line with columns titles
-	 */
-	public final static int FULL = 1;
 
 	/**
 	 * create a new instance of XslTree The nodes will not be automatically
@@ -142,7 +121,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * not validate the regexp, itself or its parent element (in case of
 	 * attribute) will be ignored
 	 */
-	private HashMap<XsdNode, String> elementFilters = new HashMap<XsdNode, String>();
+	private HashMap<XsdNode, String> elementFilters = new HashMap<>();
 
 	/**
 	 * set the separator for the flat file
@@ -160,7 +139,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * 
 	 * @param node
 	 *            the node to check
-	 * @return an array of Strings describing the errors found
+	 * @return a boolean
 	 */
 	public boolean check(XsdNode node) {
 		return true;
@@ -170,19 +149,15 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * this method should reinitialize every variable making reference to the
 	 * actual tree, such as any <code>List</code> used to make associations to
 	 * externals objects.
-	 * 
 	 * set selection as a new <code>ArrayList</code>
 	 */
 	public void emptySelectionLists() {
-		ArrayList<XsdNode> selectionsCopy = new ArrayList<XsdNode>();
-		selectionsCopy.addAll(selections);
-		Iterator<XsdNode> it = selectionsCopy.iterator();
-		while (it.hasNext()) {
-			XsdNode node = it.next();
-			unselectNode(node);
-		}
+        ArrayList<XsdNode> selectionsCopy = new ArrayList<>(selections);
+        for (XsdNode node : selectionsCopy) {
+            unselectNode(node);
+        }
 		lineXsdNode = null;
-		elementFilters = new HashMap<XsdNode, String>();
+		elementFilters = new HashMap<>();
 	}
 
 	// HashMap referencedElements = new HashMap();
@@ -191,10 +166,10 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * Open a frame to choose an XML document and load it.
 	 * 
 	 */
-	public void loadDocument(URL url) throws FileNotFoundException,
-			NullPointerException, MalformedURLException, IOException,
+	public void loadDocument(URL url) throws
+            NullPointerException, IOException,
 			SAXException {
-		maxCounts = new HashMap<XsdNode, Integer>();
+		maxCounts = new HashMap<>();
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
@@ -211,11 +186,10 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 			/* get all references */
 			log.debug("get keys/keyRefs");
-			buidKeyMaps();
-			for (String refer : refType2referedType.keySet()) {
-				String refered = refType2referedType.get(refer);
-				log.debug("found reftype: " + refer + " refers "
-						+ refered);
+			buildKeyMaps();
+			for (String refer : refType2referredType.keySet()) {
+				String referred = refType2referredType.get(refer);
+				log.debug("found refType: " + refer + " refers " + referred);
 			}
 			log.debug("done");
 
@@ -225,13 +199,13 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			Utils.lastVisitedDirectory = url.getPath();
 			Utils.lastVisitedDocumentDirectory = url.getPath();
 		} catch (ParserConfigurationException e) {
-			/** TODO: manage excepton */
+			/* TODO: manage exception */
 		}
 	}
 
-	private HashMap<String, Node> xsKeyNodes = new HashMap<String, Node>();
+	private HashMap<String, Node> xsKeyNodes = new HashMap<>();
 
-	private void getKeyNodes(String keyName, String keySelector, String keyField) {
+	private void getKeyNodes(String keyName, String keySelector) {
 
 		if (document == null)
 			return;
@@ -244,14 +218,13 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 		if (nodeContainer == null)
 			return;
-		log.debug("found list of refered node: "
+		log.debug("found list of referred node: "
 				+ nodeContainer.getNodeName());
 
 		for (int i = 0; i < nodeContainer.getChildNodes().getLength(); i++) {
 			Node child = nodeContainer.getChildNodes().item(i);
-			String name = child.getNodeName();
-			/* get refId name */
-			String idFieldName = getReferedIdFieldName(name);
+            /* get refId name */
+			String idFieldName = getReferredIdFieldName();
 			if (child.hasAttributes()) {
 				for (int j = 0; j < child.getAttributes().getLength(); j++) {
 					if (child.getAttributes().item(j).getNodeName().equals(
@@ -272,7 +245,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 		if (startIdx == path.length - 1)
 			return node;
-		if (false == node.hasChildNodes()) {
+		if (!node.hasChildNodes()) {
 			return null;
 		}
 
@@ -286,19 +259,18 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		return null;
 	}
 
-	private String getReferedIdFieldName(String key) {
+	private String getReferredIdFieldName() {
 		return "id";
 	}
 
-	private void buidKeyMaps() {
+	private void buildKeyMaps() {
 
 		log.debug("get keys");
-		for (Node node : keyz) {
+		for (Node node : keys) {
 			String keyName = null;
 			String keySelector = null;
-			String keyField = null;
 
-			if (node.hasAttributes()) {
+            if (node.hasAttributes()) {
 				for (int i = 0; i < node.getAttributes().getLength(); i++) {
 					if (node.getAttributes().item(i).getNodeName().equals(
 							"name")) {
@@ -326,30 +298,26 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					for (int j = 0; j < child.getAttributes().getLength(); j++) {
 						if (child.getAttributes().item(j).getNodeName().equals(
 								"xpath")) {
-							keyField = child.getAttributes().item(j)
-									.getNodeValue().replace("@", "");
-						}
+                            child.getAttributes().item(j);
+                        }
 					}
 				}
 			}
-			getKeyNodes(keyName, keySelector, keyField);
+			getKeyNodes(keyName, keySelector);
 
 		}
 
 		log.debug("get keyRefs");
 		for (Node node : keyRefs) {
-			String keyRefName = null;
-			String keyRefRefer = null;
+            String keyRefRefer = null;
 			String keyRefSelector = null;
-			String keyRefField = null;
 
 			if (node.hasAttributes()) {
 				for (int i = 0; i < node.getAttributes().getLength(); i++) {
 					if (node.getAttributes().item(i).getNodeName().equals(
 							"name")) {
-						keyRefName = node.getAttributes().item(i)
-								.getNodeValue();
-					} else if (node.getAttributes().item(i).getNodeName()
+                        node.getAttributes().item(i);
+                    } else if (node.getAttributes().item(i).getNodeName()
 							.equals("refer")) {
 						keyRefRefer = node.getAttributes().item(i)
 								.getNodeValue();
@@ -370,13 +338,12 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					for (int j = 0; j < child.getAttributes().getLength(); j++) {
 						if (child.getAttributes().item(j).getNodeName().equals(
 								"xpath")) {
-							keyRefField = child.getAttributes().item(j)
-									.getNodeValue();
-						}
+                            child.getAttributes().item(j);
+                        }
 					}
 				}
 			}
-			refType2referedType.put(getSchemaXpath(node.getParentNode()) + "/"
+			refType2referredType.put(getSchemaXpath(node.getParentNode()) + "/"
 					+ keyRefSelector, keyRefRefer);
 		}
 	}
@@ -387,7 +354,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 */
 	public void setLineNode(XsdNode lineNode) {
 		this.lineXsdNode = lineNode;
-		maxCounts = new HashMap<XsdNode, Integer>();
+		maxCounts = new HashMap<>();
 
 		lineElements = getNodes(lineNode.getPath());
 		treeModel.reload(lineNode);
@@ -406,7 +373,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * the file for a type of node. The key is the String association of the
 	 * name of the parent and the name of the node
 	 */
-	public HashMap<XsdNode, Integer> maxCounts = new HashMap<XsdNode, Integer>();
+	public HashMap<XsdNode, Integer> maxCounts = new HashMap<>();
 
 	/**
 	 * follow a path in the document to find corresponding element
@@ -428,25 +395,24 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 	public ArrayList<Node> getXmlElements(TreeNode[] path, Node xmlNode,
 			int pathIndex) {
-		ArrayList<Node> list = new ArrayList<Node>();
+		ArrayList<Node> list = new ArrayList<>();
 
 		if (pathIndex < path.length - 1) {
 			NodeList children = xmlNode.getChildNodes();
 
 			for (int j = 0; j < children.getLength(); j++) {
-				if (((XsdNode) path[pathIndex + 1]).toString().compareTo(
+				if (path[pathIndex + 1].toString().compareTo(
 						children.item(j).getNodeName()) == 0) {
 					list.addAll(getXmlElements(path, children.item(j),
 							pathIndex + 1));
 				}
 			}
 
-			return list;
-		} else {
+        } else {
 			list.add(xmlNode);
-			return list;
-		}
-	}
+        }
+        return list;
+    }
 
 	/**
 	 * 
@@ -463,9 +429,9 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					if (elementFilters.containsKey(children.item(i))) {
 						try {
 							String value2 = children.item(i).getNodeValue();
-							/** TODO: done for managing filter */
-							if (false == value2.matches((String) elementFilters
-									.get(children.item(i)))) {
+							/* TODO: done for managing filter */
+							if (!value2.matches(elementFilters
+                                    .get(children.item(i)))) {
 								return "";
 							}
 						} catch (NullPointerException e) {
@@ -476,13 +442,13 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 				}
 
-				if (children.item(i).getNodeName() == "#text")
+				if (children.item(i).getNodeName().equals("#text"))
 					value = children.item(i).getNodeValue();
 			}
 
 			return value;
 		} catch (NullPointerException e) {
-			/** element is null */
+			/* element is null */
 			return "";
 		}
 
@@ -490,14 +456,14 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 	/**
 	 * look in the XML schema for the deepest node that is an ancestor of every
-	 * nodes selected @ return the deepest node in the XML schema that is an
-	 * Ancestor of every nodes selected
+	 * node selected @ return the deepest node in the XML schema that is an
+	 * Ancestor of every node selected
 	 */
 	public void setXmlRoot() {
 		if (lineNodeIsSelected)
 			return;
 
-		if (selections.size() == 0) {
+		if (selections.isEmpty()) {
 			lineXsdNode = (XsdNode) treeModel.getRoot();
 			lineElements = getNodes(lineXsdNode.getPath());
 			return;
@@ -528,7 +494,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 				}
 			} else {
 				nb = 0;
-				if (tmp.isDuplicable())
+				if (Objects.requireNonNull(tmp).isDuplicable())
 					lastDuplicable = tmp;
 				value = tmp;
 				children = value.children();
@@ -537,11 +503,11 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		if (nb <= 1)
 			value = select;
 		log.debug("[PSI makers: flattener] root selected: "
-				+ value.toString());
+				+ Objects.requireNonNull(value));
 
 		lineXsdNode = lastDuplicable;
 
-		lineElements = getNodes(lineXsdNode.getPath());
+		lineElements = getNodes(Objects.requireNonNull(lineXsdNode).getPath());
 
 	}
 
@@ -558,13 +524,12 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * 
 	 * @param out
 	 *            the <code>writer</code> where to print the file
-	 * @throws IOException
 	 */
 	public void write(Writer out) throws IOException {
 		/*
 		 * get the first interesting node, ie the deepest one that is an
 		 * ancestor of every selected node, in the schema and corresponding
-		 * nodes in the the document
+		 * nodes in the document
 		 */
 		setXmlRoot();
 		firstElement = true;
@@ -578,12 +543,12 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 		firstElement = true;
 		/* Marshal each element */
-		for (int i = 0; i < lineElements.size(); i++) {
-			firstElement = true;
-			writeNode(lineXsdNode, (Element) lineElements.get(i), out, false);
-			out.write("\n");
-			out.flush();
-		}
+        for (Node lineElement : lineElements) {
+            firstElement = true;
+            writeNode(lineXsdNode, lineElement, out, false);
+            out.write("\n");
+            out.flush();
+        }
 	}
 
 	/**
@@ -599,13 +564,13 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		}
 		/* max count already computed */
 		if (maxCounts.containsKey(xsdNode)) {
-			return maxCounts.get(xsdNode).intValue();
+			return maxCounts.get(xsdNode);
 		}
 
-		int count = 0;
+		int count;
 		int max = 0;
 
-		/** for attributes get number of parent element */
+		/* for attributes get number of parent element */
 		if (((Annotated) xsdNode.getUserObject()).getStructureType() == Structure.ATTRIBUTE) {
 			xsdNode = (XsdNode) xsdNode.getParent();
 		}
@@ -626,7 +591,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		}
 
 		/* keep the result */
-		maxCounts.put(originalNode, new Integer(max));
+		maxCounts.put(originalNode, max);
 
 		return max;
 	}
@@ -651,8 +616,8 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			if (elementFilters.containsKey(parent)) {
 				String value = ((Element) element).getAttributeNode(
 						target.toString()).getNodeValue();
-				/** TODO: done for managing filter */
-				if (false == value.matches(elementFilters.get(target))) {
+				/* TODO: done for managing filter */
+				if (!value.matches(elementFilters.get(target))) {
 					log.debug(target.getName() + " filtered");
 					return 0;
 				}
@@ -660,52 +625,50 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			return 1;
 		}
 
-		int currentMax = 0;
-		int totalCount = 0;
-		int max = 0;
+		int currentMax;
+        int max = 0;
 
 		path.nextElement();
 		XsdNode nextNode = (XsdNode) path.nextElement();
 
-		/* get all childrens and refs */
-		NodeList childrens = element.getChildNodes();
+		/* get all children and refs */
+		NodeList children = element.getChildNodes();
 
-		for (int indexChildrens = 0; indexChildrens < childrens.getLength(); indexChildrens++) {
-			Node xmlChild = childrens.item(indexChildrens);
+		for (int indexChildren = 0; indexChildren < children.getLength(); indexChildren++) {
+			Node xmlChild = children.item(indexChildren);
 
-			/**
+			/*
 			 * check for the name: a single node in the tree could have numerous
 			 * corresponding elements in the XML document, that could be either
 			 * the node itself or a reference.
 			 */
 			if (xmlChild.getNodeType() == Structure.ATTRIBUTE) {
 
-				Enumeration<TreeNode> xsdChildrens = nextNode.children();
-				while (xsdChildrens.hasMoreElements()) {
-					XsdNode xsdChild = (XsdNode) xsdChildrens.nextElement();
+				Enumeration<TreeNode> xsdChildren = nextNode.children();
+				while (xsdChildren.hasMoreElements()) {
+					XsdNode xsdChild = (XsdNode) xsdChildren.nextElement();
 
 					if (elementFilters.containsKey(xsdChild)) {
 						try {
-							String value = ((org.apache.xerces.dom.DeferredTextImpl) xmlChild)
+							String value = ((DeferredTextImpl) xmlChild)
 									.getNodeValue();
-							/** TODO: done for managing filter */
-							if (false == value.matches(elementFilters
-									.get(xmlChild))) {
+							/* TODO: done for managing filter */
+							if (!value.matches(elementFilters
+                                    .get(xmlChild))) {
 								return 0;
 							}
 						} catch (Exception e) {
-							/** TODO : manage exception */
+							/* TODO : manage exception */
 						}
 					}
 				}
 			}
 
-			/* direct childrens */
+			/* direct children */
 			if (xmlChild.getNodeName().equals(nextNode.toString())) {
 				currentMax = getMaxCount(xmlChild, nextNode, target, target
 						.pathFromAncestorEnumeration(nextNode));
-				totalCount += currentMax;
-				if (((XsdNode) target.getParent()).toString().compareTo(
+                if (target.getParent().toString().compareTo(
 						parent.toString()) == 0) {
 					max += currentMax;
 				} else {
@@ -723,8 +686,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					// count++;
 					currentMax = getMaxCount(ref, nextNode, target, target
 							.pathFromAncestorEnumeration(nextNode));
-					totalCount += currentMax;
-					if (((XsdNode) target.getParent()).toString().compareTo(
+                    if (target.getParent().toString().compareTo(
 							parent.toString()) == 0) {
 						max += currentMax;
 					} else if (currentMax > max) {
@@ -735,17 +697,13 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 			/* key ref */
 			else if (isXsRefPath(xmlChild)) {
-				Element ref = this.getElementByKeyRef(xmlChild); // ((Element)
-				// child)
-				// //document.
-				// .getAttribute(refAttribute), child.getNodeName());
+				Element ref = this.getElementByKeyRef(xmlChild);
 				if (ref != null
 						&& ref.getNodeName().compareTo(nextNode.toString()) == 0) {
 					// count++;
 					currentMax = getMaxCount(ref, nextNode, target, target
 							.pathFromAncestorEnumeration(nextNode));
-					totalCount += currentMax;
-					if (((XsdNode) target.getParent()).toString().compareTo(
+                    if (target.getParent().toString().compareTo(
 							parent.toString()) == 0) {
 						max += currentMax;
 					} else if (currentMax > max) {
@@ -762,8 +720,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					// count++;
 					currentMax = getMaxCount(ref, nextNode, target, target
 							.pathFromAncestorEnumeration(nextNode));
-					totalCount += currentMax;
-					if (((XsdNode) target.getParent()).toString().compareTo(
+                    if (target.getParent().toString().compareTo(
 							parent.toString()) == 0) {
 						max += currentMax;
 					} else if (currentMax > max) {
@@ -782,17 +739,17 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * @param xsdNode
 	 *            the node in the tree to parse
 	 * @param xmlElement
-	 *            the element in tghe XML document
-	 * @param marshallingType
+	 *            the element in the XML document
+	 * @param empty
 	 *            title or full parsing
 	 * @param out
-	 * @throws IOException
+	 * 			writer
 	 */
 	public boolean writeNode(XsdNode xsdNode, Node xmlElement, Writer out,
 			boolean empty) throws IOException {
 
-		/** first check if the element do not have to be filtered */
-		if (false == empty) {
+		/* first check if the element do not have to be filtered */
+		if (!empty) {
 			Enumeration<TreeNode> children = xsdNode.children();
 			while (children.hasMoreElements()) {
 				XsdNode child = (XsdNode) children.nextElement();
@@ -801,12 +758,12 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					if (elementFilters.containsKey(child)) {
 						String value = ((Element) xmlElement).getAttributeNode(
 								child.toString()).getNodeValue();
-						/** TODO: done for managing filter */
+						/* TODO: done for managing filter */
 						Pattern p = Pattern.compile(elementFilters.get(child));
 						Matcher m = p.matcher(value);
 						boolean match = m.matches();
 
-						if (false == match) {
+						if (!match) {
 							return false;
 						}
 					}
@@ -814,18 +771,18 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			}
 		}
 
-		if (false == xsdNode.isUsed()) {
+		if (!xsdNode.isUsed()) {
 			return false;
 		}
 
 		if (selections.contains(xsdNode)) {
 			if (xmlElement != null || empty) {
 				String value = getElementValue((Element) xmlElement);
-				/** TODO: done for managing filter */
-				/** if empty marshaling, we do not care about filters */
-				if (elementFilters.containsKey(xsdNode) && false == empty
+				/* TODO: done for managing filter */
+				/* if empty marshaling, we do not care about filters */
+				if (elementFilters.containsKey(xsdNode) && !empty
 						&& elementFilters.get(xsdNode) != null
-						&& elementFilters.get(xsdNode).length() > 0) {
+						&& !elementFilters.get(xsdNode).isEmpty()) {
 					if (value.matches(elementFilters.get(xsdNode))) {
 						if (firstElement)
 							firstElement = false;
@@ -850,17 +807,17 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			if (child.isUsed()) {
 				switch (((Annotated) child.getUserObject()).getStructureType()) {
 				case Structure.ELEMENT:
-					/** number of element found */
+					/* number of element found */
 					int cpt = 0;
-					/** number of elements really marshalled, ie not filtered */
+					/* number of elements really marshalled, ie not filtered */
 					int nbElementFound = 0;
-					/* create a NodeList with all childs with tagname */
+					/* create a NodeList with all children with tagName */
 					if (xmlElement != null) {
 						NodeList allElements = xmlElement.getChildNodes();
-						ArrayList<Node> elements = new ArrayList<Node>();
-						/**
+						ArrayList<Node> elements = new ArrayList<>();
+						/*
 						 * number of element found: could be lower than
-						 * elements's length due to filters
+						 * elements' length due to filters
 						 */
 						for (int i = 0; i < allElements.getLength(); i++) {
 							if (allElements.item(i).getNodeName().compareTo(
@@ -868,7 +825,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 								elements.add(allElements.item(i));
 							}
 
-							/* get refence by xs:key */
+							/* get reference by xs:key */
 							else if (isXsRefPath(allElements.item(i))) {
 								Element ref = // document.
 								getElementByKeyRef(allElements.item(i));
@@ -932,22 +889,22 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		return true;
 	}
 
-	ArrayList<Integer> currentPath = new ArrayList<Integer>();
+	ArrayList<Integer> currentPath = new ArrayList<>();
 
 	private String getCurrentPath() {
-		String path = "";
+		StringBuilder path = new StringBuilder();
 		for (Integer i : currentPath) {
 			if (i > 0) {
-				if (false == "".equals(path))
-					path += ".";
-				path += i;
+				if (path.length() > 0)
+					path.append(".");
+				path.append(i);
 			}
 		}
 
-		if (false == "".equals(path))
-			path = "-" + path;
+		if (!path.toString().isEmpty())
+			path.insert(0, "-");
 
-		return path;
+		return path.toString();
 	}
 
 	/**
@@ -955,28 +912,28 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * the marshalling type title.
 	 * 
 	 * @param xsdNode
-	 * @param element
-	 * @param marshallingType
+	 * 				node
 	 * @return
+	 * 				string
 	 */
 	public String getTitle(XsdNode xsdNode) {
-		String out = "";
+		StringBuilder out = new StringBuilder();
 
-		if (false == xsdNode.isUsed()) {
-			return out;
+		if (!xsdNode.isUsed()) {
+			return out.toString();
 		}
 
 		if (selections.contains(xsdNode)) {
 			if (firstElement)
 				firstElement = false;
 			else
-				out += separator;
-			out += xsdNode.getName() + getCurrentPath();// nextNumber(node);
+				out.append(separator);
+			out.append(xsdNode.getName()).append(getCurrentPath());// nextNumber(node);
 		}
 
 		Enumeration<TreeNode> children = xsdNode.children();
 
-		if (xsdNode.isDuplicable() && false == currentPath.isEmpty()) {
+		if (xsdNode.isDuplicable() && !currentPath.isEmpty()) {
 			Integer i = currentPath.remove(currentPath.size() - 1);
 			currentPath.add(i + 1);
 		}
@@ -990,7 +947,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 				case Structure.ELEMENT:
 
 					int cpt = 0;
-					/* create a NodeList with all childs with tagname */
+					/* create a NodeList with all children with tagName */
 					int maxCount = getMaxCount(xsdChild);
 
 					if (xsdChild.isDuplicable()) {
@@ -998,7 +955,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					}
 
 					while (cpt < maxCount) {
-						out += getTitle(xsdChild);
+						out.append(getTitle(xsdChild));
 						cpt++;
 					}
 
@@ -1010,9 +967,9 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					if (firstElement)
 						firstElement = false;
 					else
-						out += separator;
+						out.append(separator);
 
-					out += xsdChild.getName() + getCurrentPath();// nextNumber(child);
+					out.append(xsdChild.getName()).append(getCurrentPath());// nextNumber(child);
 
 					break;
 				default:
@@ -1021,10 +978,10 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			}
 		}
 
-		return out;
+		return out.toString();
 	}
 
-	public ArrayList<XsdNode> selections = new ArrayList<XsdNode>();
+	public ArrayList<XsdNode> selections = new ArrayList<>();
 
 	public void addName(XsdNode node, String name) {
 		associatedNames.put(node, name);
@@ -1034,7 +991,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 	public void addFilter(XsdNode node, String regexp) {
 		elementFilters.remove(node);
-		if (regexp != null && !regexp.trim().equals(""))
+		if (regexp != null && !regexp.trim().isEmpty())
 			elementFilters.put(node, regexp.trim());
 	}
 
@@ -1049,7 +1006,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 	public void unselectNode(XsdNode xsdNode) {
 		selections.remove(xsdNode);
-		xsdNode.unuse();
+		xsdNode.unused();
 		check((XsdNode) treeModel.getRoot());
 		treeModel.reload(xsdNode);
 
@@ -1072,13 +1029,13 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 		mapping.setExpendChoices(this.expendChoices);
 
-		ArrayList<String> selections = new ArrayList<String>();
-		for (int i = 0; i < this.selections.size(); i++) {
-			selections.add(getPathForNode(this.selections.get(i)));
-		}
+		ArrayList<String> selections = new ArrayList<>();
+        for (XsdNode selection : this.selections) {
+            selections.add(getPathForNode(selection));
+        }
 		mapping.setSelections(selections);
 
-		HashMap<String, String> associatedNames = new HashMap<String, String>();
+		HashMap<String, String> associatedNames = new HashMap<>();
 		
 		for (XsdNode node : this.associatedNames.keySet()) {
 			associatedNames.put(getPathForNode(node), this.associatedNames
@@ -1086,7 +1043,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		}
 		mapping.setAssociatedNames(associatedNames);
 
-		HashMap<String, String> elementFilters = new HashMap<String, String>();
+		HashMap<String, String> elementFilters = new HashMap<>();
 		
 		for (XsdNode node : this.elementFilters.keySet()) {
 			elementFilters.put(getPathForNode(node), this.elementFilters
@@ -1103,23 +1060,19 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * @param node
 	 *            the node in the tree to parse
 	 * @param element
-	 *            the element in tghe XML document
-	 * @param marshallingType
-	 *            title or full parsing
-	 * @param out
-	 * @throws IOException
-	 */
+	 *            the element in the XML document
+     */
 	public String marshallNode(XsdNode node, Node element) throws IOException {
-		String marshalling = "";
+		StringBuilder marshalling = new StringBuilder();
 		if (!node.isUsed()) {
-			return marshalling;
+			return marshalling.toString();
 		}
 
 		if (selections.contains(node)) {
 			if (firstElement)
 				firstElement = false;
 			else
-				marshalling += separator;
+				marshalling.append(separator);
 
 			Enumeration<TreeNode> children = node.children();
 			boolean filtered = false;
@@ -1131,7 +1084,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 						// try {
 						String value = ((Element) element).getAttributeNode(
 								child.toString()).getNodeValue();
-						/** TODO: done for managing filter */
+						/* TODO: done for managing filter */
 						if (!value.matches(elementFilters.get(child))) {
 							filtered = true;
 						}
@@ -1139,8 +1092,8 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 				}
 			}
 
-			if (element != null && filtered == false) {
-				marshalling += getElementValue((Element) element);
+			if (element != null && !filtered) {
+				marshalling.append(getElementValue((Element) element));
 			}
 		}
 
@@ -1151,10 +1104,10 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 				switch (((Annotated) child.getUserObject()).getStructureType()) {
 				case Structure.ELEMENT:
 					int cpt = 0;
-					/* create a NodeList with all childs with tagname */
+					/* create a NodeList with all children with tagName */
 					if (element != null) {
 						NodeList allElements = element.getChildNodes();
-						ArrayList<Node> elements = new ArrayList<Node>();
+						ArrayList<Node> elements = new ArrayList<>();
 						for (int i = 0; i < allElements.getLength(); i++) {
 							if (allElements.item(i).getNodeName().compareTo(
 									child.toString()) == 0) {
@@ -1163,12 +1116,10 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 
 							/* get references */
 							else if (isXsRefPath(allElements.item(i))) {
-								Element ref = getElementByKeyRef((Element) allElements
+								Element ref = getElementByKeyRef(allElements
 										.item(i));
 								System.out.println("ref2: "+ref.getNodeName());
-								if (ref != null
-										&& ref.getNodeName().compareTo(
-												child.toString()) == 0) {
+								if (ref != null && ref.getNodeName().compareTo(child.toString()) == 0) {
 									elements.add(ref);
 								}
 							}
@@ -1186,14 +1137,14 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 							}
 						}
 						while (cpt < elements.size()) {
-							marshalling += marshallNode(child, elements
-									.get(cpt));
+							marshalling.append(marshallNode(child, elements
+                                    .get(cpt)));
 							cpt++;
 						}
 					}
 					int maxCount = getMaxCount(child);
 					while (cpt < maxCount) {
-						marshalling += marshallNode(child, null);
+						marshalling.append(marshallNode(child, null));
 						cpt++;
 					}
 					break;
@@ -1201,11 +1152,11 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 					if (firstElement)
 						firstElement = false;
 					else
-						marshalling += separator;
+						marshalling.append(separator);
 
 					if (element != null) {
-						marshalling += ((Element) element).getAttributeNode(
-								child.toString()).getNodeValue();
+						marshalling.append(((Element) element).getAttributeNode(
+                                child.toString()).getNodeValue());
 					}
 					break;
 				default:
@@ -1213,37 +1164,27 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 				}
 			}
 		}
-		return marshalling;
+		return marshalling.toString();
 	}
 
 	public void loadMapping(TreeMapping mapping) throws IOException,
 			SAXException {
 		if (mapping.documentURL != null)
-			this.setDocumentURL(new File(mapping.documentURL).toURL());
+			this.setDocumentURL(new File(mapping.documentURL).toURI().toURL());
 		
 		if (mapping.getSchemaURL() != null)
-			this.setSchemaURL(new File(mapping.getSchemaURL()).toURL());
+			this.setSchemaURL(new File(mapping.getSchemaURL()).toURI().toURL());
 
 		File schema = new File(Utils.absolutizeURL(schemaURL).getPath());
 
-		if (false == schema.exists()) {
+		if (!schema.exists()) {
 			log.error("file "+mapping.getSchemaURL()+" not found");
 			System.exit(1);
 		}
 		
 		loadSchema(schema.toURI().toURL());
 
-//		ArrayList<String> expandedChoices = new ArrayList<String>();
-//		
-//		expandedChoices.addAll(mapping.expendChoices);
-//		
-//		this.setExpendChoices(mapping.expendChoices);
-//
-//		for (String path : expandedChoices) {
-//			super.extendPath(super.getNodeByPath(path));
-//		}
-
-		this.setExpendChoices(mapping.expendChoices);
+        this.setExpendChoices(mapping.expendChoices);
 
 		int i = 0;
 		while (i < expendChoices.size()) {
@@ -1263,18 +1204,18 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		this.setSeparator(mapping.separator);
 
 		for (i = 0; i < mapping.selections.size(); i++) {
-			XsdNode xsdNode = getNodeByPath((String) mapping.selections.get(i));
+			XsdNode xsdNode = getNodeByPath(mapping.selections.get(i));
 			selectNode(xsdNode);
 		}
 
 		for (String path : mapping.associatedNames.keySet()) {
-			String field = (String) mapping.associatedNames.get(path);
+			String field = mapping.associatedNames.get(path);
 			XsdNode node = getNodeByPath(path);
 			addName(node, field);
 		}
 
 		for (String path : mapping.elementFilters.keySet()) {
-			String field = (String) mapping.elementFilters.get(path);
+			String field = mapping.elementFilters.get(path);
 			XsdNode node = getNodeByPath(path);
 			this.elementFilters.put(node, field);
 		}
@@ -1291,7 +1232,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	}
 
 	/**
-	 * @param documentURI
+	 * @param documentURL
 	 *            The documentURI to set.
 	 * 
 	 * @uml.property name="documentURL"
@@ -1301,26 +1242,11 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	}
 
 	/**
-	 * @param schemaURI
-	 *            The schemaURI to set.
-	 */
-	public void setSchemaURI(URL schemaURL) {
-		this.schemaURL = schemaURL;
-	}
-
-	/**
-	 * @return Returns the lineNode.
-	 */
-	public XsdNode getLineNode() {
-		return lineXsdNode;
-	}
-
-	/**
 	 * keep current values for referenced fields
 	 * 
 	 * @uml.property name="associatedValues"
 	 */
-	public HashMap<XsdNode, String> associatedNames = new HashMap<XsdNode, String>();
+	public HashMap<XsdNode, String> associatedNames = new HashMap<>();
 
 	/**
 	 * @return Returns the curElementCount.
@@ -1329,28 +1255,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		return curElementsCount;
 	}
 
-//	private String nextNumber(XsdNode node) {
-//		String alphabetHigh = "_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-//		String alphabetLow = "_abcdefghijklmnopqrstuvwxyz";
-//		int count = getMaxCount(node, lineXsdNode) + 1;
-//		if (count > 1) {
-//			int num = node.nextNumber();
-//			num = (num) % count;
-//			if (numerotation_type == HIGH_ALPHABETIC_NUMEROTATION
-//					&& num < alphabetHigh.length())
-//				return "" + alphabetHigh.charAt(num);
-//			if (numerotation_type == LOW_ALPHABETIC_NUMEROTATION
-//					&& num < alphabetHigh.length())
-//				return "" + alphabetLow.charAt(num);
-//
-//			if (numerotation_type == NUMERIC_NUMEROTATION)
-//				return "" + num;
-//			return "" + num;
-//		}
-//		return "";
-//	}
-
-	/**
+    /**
 	 * set count for each node to 0. the count is used for the display of the
 	 * title line, and this function will be used before updating the preview or
 	 * before printing the file.
@@ -1367,32 +1272,25 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		}
 	}
 
-	public int getMaxCount(XsdNode node, XsdNode parent) {
-		if (node == parent) {
-			return getMaxCount(node);
-		}
-		Enumeration<TreeNode> e = node.pathFromAncestorEnumeration(parent);
-		e.nextElement();
-		XsdNode nextNode = (XsdNode) e.nextElement();
-		return getMaxCount(parent) * getMaxCount(node, nextNode);
-	}
-
 	/**
 	 * get Element referred by this id, according to the XML id specification
 	 * 
 	 * @param id
+	 * 			identifier
 	 * @return
+	 * 			document element
 	 */
 	private Element getElementById(String id) {
-		Element ref = document.getElementById(id);
-		return ref;
+        return document.getElementById(id);
 	}
 
 	/**
 	 * get element referred, according to the key/keyRef xs specification
 	 * 
 	 * @param node
+	 * 				referred node
 	 * @return
+	 * 			element
 	 */
 	private Element getElementByKeyRef(Node node) {
 		Element ref;
@@ -1400,7 +1298,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		String refType = getDocumentXpath(node);
 		/* get ref attribute */
 		String refId = node.getFirstChild().getNodeValue();
-		if (refId == null || refId.equals("")) {
+		if (refId == null || refId.isEmpty()) {
 			for (int i = 0; i < node.getAttributes().getLength(); i++) {
 				if (node.getAttributes().item(i).getNodeName().equals(
 						refAttribute)) {
@@ -1409,9 +1307,9 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 			}
 		}
 
-		String referedType = refType2referedType.get(refType);
+		String referredType = refType2referredType.get(refType);
 
-		ref = (Element) xsKeyNodes.get(referedType + "#" + refId);
+		ref = (Element) xsKeyNodes.get(referredType + "#" + refId);
 		return ref;
 	}
 
@@ -1422,7 +1320,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		}
 		String name = getName(node);
 
-		if (name != null && xpath != null && xpath.equals("") == false)
+		if (name != null && xpath != null && !xpath.isEmpty())
 			xpath += "/";
 
 		if (name != null)
@@ -1434,10 +1332,12 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 	 * the name of an element in the schema is contained in the attribute 'name'
 	 * 
 	 * @param node
+	 * 				node with a name attribute
 	 * @return
+	 * 			node's name
 	 */
 	private String getName(Node node) {
-		if (node.hasAttributes() == false)
+		if (!node.hasAttributes())
 			return null;
 
 		for (int i = 0; i < node.getAttributes().getLength(); i++) {
@@ -1447,45 +1347,7 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		return null;
 	}
 
-	// private void getKeys(Node node) {
-	// try {
-	// for (int i = 0; i < node.getChildNodes().getLength(); i++) {
-	// if (node.getChildNodes().item(i).getNodeName()
-	// .indexOf("keyref") > 0) {
-	// keyRefs.add(node.getChildNodes().item(i));
-	// } else if (node.getChildNodes().item(i).getNodeName().indexOf(
-	// "key") > 0) {
-	// keyz.add(node.getChildNodes().item(i));
-	// }
-	// getKeys(node.getChildNodes().item(i));
-	// }
-	//	
-	// } catch (Exception e) {
-	// e.printStackTrace(System.err);
-	// }
-	// }
-
-	/**
-	 * Return all the children and gran children of a node of the Schema which
-	 * are selected, but not the selected node under those ones.
-	 */
-	private ArrayList<XsdNode> getNextSelectedChildren(XsdNode xsdNode) {
-		ArrayList<XsdNode> xsdNodes = new ArrayList<XsdNode>();
-		Enumeration<TreeNode> children = xsdNode.children();
-
-		while (children.hasMoreElements()) {
-			XsdNode child = (XsdNode) children.nextElement();
-
-			if (child.isUsed()) {
-				xsdNodes.add(child);
-			} else {
-				xsdNodes.addAll(getNextSelectedChildren(child));
-			}
-		}
-		return xsdNodes;
-	}
-
-	public Document getDocument() {
+    public Document getDocument() {
 		return document;
 	}
 
@@ -1505,20 +1367,12 @@ public class XsdTreeStructImpl extends AbstractXsdTreeStruct {
 		return lineElements;
 	}
 
-	public void setLineElements(ArrayList<Node> lineElements) {
-		this.lineElements = lineElements;
-	}
-
 	public void setValidateDocument(boolean validateDocument) {
 		XsdTreeStructImpl.validateDocument = validateDocument;
 	}
 
 	public HashMap<XsdNode, String> getElementFilters() {
 		return elementFilters;
-	}
-
-	public static boolean isAllowCleanTree() {
-		return allowCleanTree;
 	}
 
 	public static void setAllowCleanTree(boolean allowCleanTree) {

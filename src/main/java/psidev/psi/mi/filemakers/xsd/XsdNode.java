@@ -48,11 +48,6 @@ public class XsdNode extends DefaultMutableTreeNode {
 
 	public int cpt = 0;
 
-	public int nextNumber() {
-		cpt++;
-		return cpt;
-	}
-
 	/**
 	 * true if the node has been checked once for all, and do not need to be
 	 * anymore (case of flat file element)
@@ -68,7 +63,7 @@ public class XsdNode extends DefaultMutableTreeNode {
 	private boolean isUsed;
 
 	/**
-	 * how many time the node is used, ie how many sub-elements are used
+	 * how many times the node is used, ie how many sub-elements are used
 	 */
 	public int use;
 
@@ -94,7 +89,7 @@ public class XsdNode extends DefaultMutableTreeNode {
 	 */
 	public XsdNode createBrother() {
 		XsdNode brother = new XsdNode();
-		brother.setUserObject((Annotated) this.getUserObject());
+		brother.setUserObject(this.getUserObject());
 		brother.isRequired = this.isRequired;
 		brother.min = this.min;
 		brother.max = this.max;
@@ -142,17 +137,7 @@ public class XsdNode extends DefaultMutableTreeNode {
 				log.error(e2);
 			}
 		}
-//		try {
-//			/* ref type */
-//			if (((ElementDecl) aValue).getType().getName().compareTo(
-//					AbstractXsdTreeStruct.refType) == 0
-//					&& !AbstractXsdTreeStruct.refTypeList.contains(this
-//							.toString())) {
-//				AbstractXsdTreeStruct.refTypeList.add(this.toString());
-//			}
-//		} catch (Exception e2) {
-//		}
-	}
+    }
 
 	/**
 	 * increment by one the number of time this node is used, and all parent
@@ -174,20 +159,20 @@ public class XsdNode extends DefaultMutableTreeNode {
 	}
 
 	/**
-	 * idem unuse()
+	 * idem unused()
 	 */
-	public void unuseOnlyThis() {
-		unuse();
+	public void unusedOnlyThis() {
+		unused();
 	}
 
 	/**
 	 * decrement by one the number of time this node is used, and all parent
 	 * nodes recursively
 	 */
-	public void unuse() {
+	public void unused() {
 		use--;
 		if (this.getParent() != null) {
-			((XsdNode) this.getParent()).unuse();
+			((XsdNode) this.getParent()).unused();
 		}
 		isUsed = use > 0;
 	}
@@ -199,7 +184,7 @@ public class XsdNode extends DefaultMutableTreeNode {
 	}
 
 	/**
-	 * return the either the name of the element or attribute represented by
+	 * return either the name of the element or attribute represented by
 	 * this node, or the choices available for this element.
 	 */
 	public String toString() {
@@ -212,7 +197,7 @@ public class XsdNode extends DefaultMutableTreeNode {
 		case Structure.GROUP:
 			return choiceToString((Group) this.getUserObject());
 		default:
-			return ((Annotated) this.getUserObject()).toString();
+			return this.getUserObject().toString();
 		}
 	}
 
@@ -234,31 +219,22 @@ public class XsdNode extends DefaultMutableTreeNode {
 			init = " | ";
 		else
 			init = " & ";
-		String value = "(";
+		StringBuilder value = new StringBuilder("(");
 		while (children.hasMoreElements()) {
-			Annotated child = (Annotated) children.nextElement();
+			Annotated child = children.nextElement();
 			switch (child.getStructureType()) {
 			case Structure.ATTRIBUTE:
-				value += delimiter + ((AttributeDecl) child).getName();
+				value.append(delimiter).append(((AttributeDecl) child).getName());
 				break;
 			case Structure.ELEMENT:
-				value += delimiter + ((ElementDecl) child).getName();
+				value.append(delimiter).append(((ElementDecl) child).getName());
 				break;
 			default:
-				value += delimiter + choiceToString((Group) child);
+				value.append(delimiter).append(choiceToString((Group) child));
 			}
 			delimiter = init;
 		}
 		return value + ")";
-	}
-
-	public String choiceToString() {
-		try {
-			return choiceToString((Group) this.getUserObject());
-		} catch (ClassCastException cce) {
-			/* not a group */
-			return "";
-		}
 	}
 
 	/**
@@ -267,24 +243,12 @@ public class XsdNode extends DefaultMutableTreeNode {
 	 * @return
 	 */
 	public String getPath2String() {
-		TreeNode nodesPath[] = super.getPath();
-		String path = "0";
+		TreeNode[] nodesPath = super.getPath();
+		StringBuilder path = new StringBuilder("0");
 		for (int i = 0; i < nodesPath.length - 1; i++) {
-			path += "." + nodesPath[i].getIndex(nodesPath[i + 1]);
+			path.append(".").append(nodesPath[i].getIndex(nodesPath[i + 1]));
 		}
-		return path;
-	}
-
-	/**
-	 * set this node and all its children recursively as super checked
-	 * 
-	 */
-	public void setSuperChecked() {
-		this.isSuperChecked = true;
-		Enumeration<TreeNode> children = this.children();
-		while (children.hasMoreElements()) {
-			((XsdNode) children.nextElement()).setSuperChecked();
-		}
+		return path.toString();
 	}
 
 	/**
@@ -304,7 +268,7 @@ public class XsdNode extends DefaultMutableTreeNode {
 	 * remove all unused children, recursively
 	 */
 	public void clean() {		
-		ArrayList<XsdNode> previousChildren = new ArrayList<XsdNode>();
+		ArrayList<XsdNode> previousChildren = new ArrayList<>();
 		
 		Enumeration<TreeNode> children = this.children();
 		while (children.hasMoreElements()) {
@@ -320,7 +284,6 @@ public class XsdNode extends DefaultMutableTreeNode {
 		for (XsdNode child : previousChildren) {
 			this.add(child);
 		}
-		
 	}
 	
 }
