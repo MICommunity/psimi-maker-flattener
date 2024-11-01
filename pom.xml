@@ -68,7 +68,7 @@
                     <repositoryLayout>flat</repositoryLayout>
 			        <useWildcardClassPath>true</useWildcardClassPath>
                     <repositoryName>lib</repositoryName>
-                    <extraJvmArguments>-Xms128m  -Xmx512m</extraJvmArguments>
+                    <extraJvmArguments>-Xms4048m  -Xmx4048m</extraJvmArguments>
                     <platforms>
                         <platform>windows</platform>
                         <platform>unix</platform>

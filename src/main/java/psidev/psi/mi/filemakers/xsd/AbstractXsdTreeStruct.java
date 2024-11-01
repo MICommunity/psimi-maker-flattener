@@ -80,7 +80,7 @@ public abstract class AbstractXsdTreeStruct {
 	/**
 	 * XML attributes
 	 */
-	public static String XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+	public static String XML_SCHEMA = "http://www.w3.org/2001/XMLSchema-instance";
 
 	/**
 	 * XML attributes

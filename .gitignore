@@ -64,3 +64,5 @@ buildNumber.properties
 /*.xsd
 xmlMakerFlattener.iml
 
+.DS_STORE
+log4j.log
